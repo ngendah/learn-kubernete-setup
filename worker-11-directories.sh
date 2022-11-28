@@ -8,6 +8,5 @@ cat<<EOF | ssh $WORKER_1
 sudo mkdir -vp \\
   /var/lib/kubelet \\
   /var/lib/kube-proxy \\
-  /var/lib/kubernetes/pki \\
-  /var/run/kubernetes
+  /etc/kubernetes/pki
 EOF

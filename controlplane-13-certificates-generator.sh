@@ -117,9 +117,9 @@ sudo mv -v ca.crt ca.key kube-apiserver.key kube-apiserver.crt \
     kube-controller-manager.key kube-controller-manager.crt \
     kube-scheduler.key kube-scheduler.crt \
     kube-proxy.key kube-proxy.crt \
-		/var/lib/kubernetes/pki/
+		/etc/kubernetes/pki/
 
 # copy and move admin key and certificate
 sudo mv admin.crt \
         admin.key \
-        /var/lib/kubernetes/pki/
+        /etc/kubernetes/pki/

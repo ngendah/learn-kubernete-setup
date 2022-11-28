@@ -15,21 +15,19 @@ export INTERNAL_IP=$MASTER_1
 export NODE=$WORKER_1
 
 # get node host name
-chmod +x worker-hostname.sh
-scp worker-hostname.sh $NODE:~
-export NODE_HOSTNAME=`ssh $NODE "bash -c ~/worker-hostname.sh"`
+export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 
 # generate kubectl configuration node
 cat<<EOF | ssh $NODE
 kubectl config set-cluster $CLUSTER_NAME \\
-    --certificate-authority=/var/lib/kubernetes/pki/ca.crt \\
+    --certificate-authority=/etc/kubernetes/pki/ca.crt \\
     --server=https://${MASTER_1}:6443 \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config set-credentials system:node:$NODE_HOSTNAME \\
-    --client-certificate=/var/lib/kubernetes/pki/$NODE_HOSTNAME.crt \\
-    --client-key=/var/lib/kubernetes/pki/$NODE_HOSTNAME.key \\
+    --client-certificate=/etc/kubernetes/pki/$NODE_HOSTNAME.crt \\
+    --client-key=/etc/kubernetes/pki/$NODE_HOSTNAME.key \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config set-context default \\
@@ -38,21 +36,21 @@ kubectl config set-context default \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config use-context default --kubeconfig=kubelet.kubeconfig
-sudo mv -v ~/$NODE_HOSTNAME.kubeconfig /var/lib/kubernetes/
-sudo chmod -v 600 /var/lib/kubernetes/kubelet.kubeconfig
+sudo mv -v ~/$NODE_HOSTNAME.kubeconfig /etc/kubernetes/
+sudo chmod -v 600 /etc/kubernetes/kubelet.kubeconfig
 EOF
 
 # generate kube-proxy configuration
 cat<<EOF | ssh $NODE
 # kube-proxy configuration
 kubectl config set-cluster $CLUSTER_NAME \
-    --certificate-authority=/var/lib/kubernetes/pki/ca.crt \
+    --certificate-authority=/etc/kubernetes/pki/ca.crt \
     --server=https://$MASTER_1:6443 \
     --kubeconfig=kube-proxy.kubeconfig
 
 kubectl config set-credentials system:kube-proxy \
-    --client-certificate=/var/lib/kubernetes/pki/kube-proxy.crt \
-    --client-key=/var/lib/kubernetes/pki/kube-proxy.key \
+    --client-certificate=/etc/kubernetes/pki/kube-proxy.crt \
+    --client-key=/etc/kubernetes/pki/kube-proxy.key \
     --kubeconfig=kube-proxy.kubeconfig
 
 kubectl config set-context default \

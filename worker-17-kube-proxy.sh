@@ -16,9 +16,7 @@ export INTERNAL_IP=$MASTER_1
 export NODE=WORKER_1
 
 # get node host name
-chmod +x worker-hostname.sh
-scp worker-hostname.sh $NODE:~
-export NODE_HOSTNAME=`ssh $NODE "bash -c ~/worker-hostname.sh"`
+export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # download kube-proxy binary
 cat<<EOF | ssh $NODE

@@ -18,7 +18,7 @@ sudo mv -v  kube-apiserver /usr/local/bin/
 # Encryption configuration
 # it will store the key to encrypt secrets
 ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
-cat<<EOF | sudo tee /var/lib/kubernetes/encryption-config.yaml
+cat<<EOF | sudo tee /etc/kubernetes/encryption-config.yaml
 kind: EncryptionConfig
 apiVersion: v1
 resources:
@@ -49,26 +49,26 @@ ExecStart=/usr/local/bin/kube-apiserver \\
   --audit-log-path=/var/log/audit.log \\
   --authorization-mode=Node,RBAC \\
   --bind-address=0.0.0.0 \\
-  --client-ca-file=/var/lib/kubernetes/pki/ca.crt \\
+  --client-ca-file=/etc/kubernetes/pki/ca.crt \\
   --enable-admission-plugins=NodeRestriction,ServiceAccount \\
   --enable-bootstrap-token-auth=true \\
-  --etcd-cafile=/var/lib/kubernetes/pki/ca.crt \\
-  --etcd-certfile=/var/lib/kubernetes/pki/etcd-server.crt \\
-  --etcd-keyfile=/var/lib/kubernetes/pki/etcd-server.key \\
+  --etcd-cafile=/etc/kubernetes/pki/ca.crt \\
+  --etcd-certfile=/etc/kubernetes/pki/etcd-server.crt \\
+  --etcd-keyfile=/etc/kubernetes/pki/etcd-server.key \\
   --etcd-servers=https://${MASTER_1}:2379 \\
   --event-ttl=1h \\
-  --encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \\
-  --kubelet-certificate-authority=/var/lib/kubernetes/pki/ca.crt \\
-  --kubelet-client-certificate=/var/lib/kubernetes/pki/apiserver-kubelet-client.crt \\
-  --kubelet-client-key=/var/lib/kubernetes/pki/apiserver-kubelet-client.key \\
+  --encryption-provider-config=/etc/kubernetes/encryption-config.yaml \\
+  --kubelet-certificate-authority=/etc/kubernetes/pki/ca.crt \\
+  --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt \\
+  --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key \\
   --runtime-config=api/all=true \\
-  --service-account-key-file=/var/lib/kubernetes/pki/service-account.crt \\
-  --service-account-signing-key-file=/var/lib/kubernetes/pki/service-account.key \\
+  --service-account-key-file=/etc/kubernetes/pki/service-account.crt \\
+  --service-account-signing-key-file=/etc/kubernetes/pki/service-account.key \\
   --service-account-issuer=https://${MASTER_1}:6443 \\
   --service-cluster-ip-range=${SERVICE_CIDR} \\
   --service-node-port-range=30000-32767 \\
-  --tls-cert-file=/var/lib/kubernetes/pki/kube-apiserver.crt \\
-  --tls-private-key-file=/var/lib/kubernetes/pki/kube-apiserver.key \\
+  --tls-cert-file=/etc/kubernetes/pki/kube-apiserver.crt \\
+  --tls-private-key-file=/etc/kubernetes/pki/kube-apiserver.key \\
   --v=2
 Restart=on-failure
 RestartSec=5

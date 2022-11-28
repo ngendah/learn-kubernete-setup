@@ -5,11 +5,11 @@ sudo rm -vf /usr/local/bin/kubectl
 
 # TLS certificates and keys
 sudo rm -vf *.cnf *.csr *.crt *.key
-sudo rm -vf /var/lib/kubernetes/pki/*
+sudo rm -vf /etc/kubernetes/pki/*
 
 # kube-configs
 sudo rm -vf *.kubeconfig
-sudo rm -vf /var/lib/kubernetes/*.kubeconfig
+sudo rm -vf /etc/kubernetes/*.kubeconfig
 
 # etcd
 sudo rm -vf /etc/etcd/*
@@ -18,7 +18,7 @@ sudo rm -vf /etc/systemd/system/etcd.service
 # api-server
 sudo rm -vf /usr/local/bin/kube-apiserver
 sudo rm -vf /etc/systemd/system/kube-apiserver.service \
-                  /var/lib/kubernetes/encryption-config.yaml
+                  /etc/kubernetes/encryption-config.yaml
 
 # controller-manager
 sudo rm -vf /usr/local/bin/kube-controller-manager

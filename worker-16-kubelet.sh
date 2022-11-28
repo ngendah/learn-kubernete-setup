@@ -16,9 +16,7 @@ export INTERNAL_IP=$MASTER_1
 export NODE=$WORKER_1
 
 # get worker host name
-chmod +x worker-hostname.sh
-scp worker-hostname.sh $NODE:~
-export NODE_HOSTNAME=`ssh $NODE "bash -c ~/worker-hostname.sh"`
+export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # download kubelet binary
 cat<<EOF | ssh $NODE
@@ -39,7 +37,7 @@ authentication:
   webhook:
     enabled: true
   x509:
-    clientCAFile: /var/lib/kubernetes/pki/ca.crt
+    clientCAFile: /etc/kubernetes/pki/ca.crt
 authorization:
   mode: Webhook
 clusterDomain: cluster.local
@@ -47,8 +45,8 @@ clusterDNS:
   - ${CLUSTER_DNS}
 resolvConf: /run/systemd/resolve/resolv.conf
 runtimeRequestTimeout: "15m"
-tlsCertFile: /var/lib/kubernetes/pki/kubelet.crt
-tlsPrivateKeyFile: /var/lib/kubernetes/pki/kubelet.key
+tlsCertFile: /etc/kubernetes/pki/kubelet.crt
+tlsPrivateKeyFile: /etc/kubernetes/pki/kubelet.key
 registerNode: true
 EOF
 
@@ -77,8 +75,8 @@ scp $NODE_HOSTNAME.kubelet-config.yaml $NODE_HOSTNAME.kubelet.service $NODE:~
 
 # execute commands on worker node
 cat<<EOF | ssh $NODE
-sudo mv -v ~/$NODE_HOSTNAME.kubelet-config.yaml /var/lib/kubernetes/
+sudo mv -v ~/$NODE_HOSTNAME.kubelet-config.yaml /etc/kubernetes/
 sudo mv -v ~/"$NODE_HOSTNAME".kubelet.service /etc/systemd/system/
-sudo chmod -v 600 /var/lib/kubernetes/$NODE_HOSTNAME.kubelet-config.yaml
+sudo chmod -v 600 /etc/kubernetes/$NODE_HOSTNAME.kubelet-config.yaml
 sudo chmod -v 600 /etc/systemd/system/$NODE_HOSTNAME.kubelet.service
 EOF

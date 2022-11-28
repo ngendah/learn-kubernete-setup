@@ -4,12 +4,12 @@ sudo chown -v root:root /usr/local/bin/kubectl
 sudo chmod -v 600 /usr/local/bin/kubectl
 
 # TLS keys and certificates
-sudo chown -v $USER:root /var/lib/kubernetes/pki/*
-sudo chmod -v 600 /var/lib/kubernetes/pki/*
+sudo chown -v root:root /etc/kubernetes/pki/*
+sudo chmod -v 600 /etc/kubernetes/pki/*
 
 # kube-config
-sudo chown -v root:root /var/lib/kubernetes/*.kubeconfig
-sudo chmod -v 600 /var/lib/kubernetes/*.kubeconfig
+sudo chown -v root:root /etc/kubernetes/*.kubeconfig
+sudo chmod -v 600 /etc/kubernetes/*.kubeconfig
 
 # etcd
 sudo chown -v root:root /etc/etcd/*
@@ -22,9 +22,9 @@ sudo chmod -v +x /usr/local/bin/kube-apiserver
 sudo chown -v root:root /usr/local/bin/kube-apiserver
 sudo chmod -v 600 /usr/local/bin/kube-apiserver
 sudo chown -v root:root /etc/systemd/system/kube-apiserver.service \
-                        /var/lib/kubernetes/encryption-config.yaml
+                        /etc/kubernetes/encryption-config.yaml
 sudo chmod -v 600 /etc/systemd/system/kube-apiserver.service \
-                  /var/lib/kubernetes/encryption-config.yaml
+                  /etc/kubernetes/encryption-config.yaml
 
 # controller-manager
 sudo chmod -v +x /usr/local/bin/kube-controller-manager

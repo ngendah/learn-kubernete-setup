@@ -22,10 +22,10 @@ sudo mv -v $ETCD_DOWNLOAD_FILE/etcd* \
         /usr/local/bin/
 
 # copy etcd TLS key and certificate
-sudo cp /var/lib/kubernetes/pki/etcd-server.key\
-        /var/lib/kubernetes/pki/etcd-server.crt \
+sudo cp /etc/kubernetes/pki/etcd-server.key\
+        /etc/kubernetes/pki/etcd-server.crt \
         /etc/etcd/
-sudo ln -vs /var/lib/kubernetes/pki/ca.crt \
+sudo ln -vs /etc/kubernetes/pki/ca.crt \
             /etc/etcd/ca.crt
 
 # create systemd unit file

@@ -3,7 +3,6 @@
 # create necessary directories
 
 sudo mkdir -vp \
-  /var/lib/kubernetes/pki \
-  /var/run/kubernetes \
+  /etc/kubernetes/pki \
   /etc/etcd \
   /var/lib/etcd
