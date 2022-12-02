@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP CONTROL-PLANE ON MASTER NODE
 # KUBECTL
 # shellcheck disable=SC2155

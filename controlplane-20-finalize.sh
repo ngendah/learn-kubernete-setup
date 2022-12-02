@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # kubectl
 sudo chmod -v +x /usr/local/bin/kubectl
 sudo chown -v root:root /usr/local/bin/kubectl

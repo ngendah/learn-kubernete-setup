@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SINGLE MASTER - SINGLE WORKER, NODE configuration
 # shellcheck disable=SC2155
 export MASTER_1=$(jq -r '.master_node_ip' cluster-config.json)

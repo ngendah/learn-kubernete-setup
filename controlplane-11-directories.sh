@@ -1,4 +1,4 @@
-# SETUP CONTROL-PLANE ON MASTER NODE
+#!/usr/bin/env bash
 
 # create necessary directories
 

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP WORKER NODE
 # GENERATE TLS CERTIFICATES
 

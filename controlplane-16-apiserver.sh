@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP CONTROL-PLANE ON MASTER NODE
 # API-SERVER
 # shellcheck disable=SC2155

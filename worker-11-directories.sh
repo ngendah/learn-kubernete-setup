@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP WORKER NODE
 # create required directories
 # shellcheck disable=SC2155

@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP ETCD ON MASTER NODE
 # shellcheck disable=SC2155
 export MASTER_1=$(jq -r '.master_node_ip' cluster-config.json)

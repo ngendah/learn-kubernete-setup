@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP CONTROL-PLANE ON MASTER NODE
 # CONTROLLER MANAGER
 # shellcheck disable=SC2155

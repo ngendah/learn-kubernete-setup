@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # SETUP WORKER NODE
 
 # Run the script on the master node
