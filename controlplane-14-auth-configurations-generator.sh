@@ -95,7 +95,6 @@ kubectl config use-context default --kubeconfig=kube-scheduler.kubeconfig
 
 # move configurations
 sudo mv -v  kube-controller-manager.kubeconfig \
-			kube-proxy.kubeconfig \
 			kube-scheduler.kubeconfig \
 			/etc/kubernetes/
 
