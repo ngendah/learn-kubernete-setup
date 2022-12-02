@@ -55,7 +55,7 @@ openssl x509 -req -in worker.csr \
 scp kube-proxy.key kube-proxy.crt worker.key worker.crt certificates-cp.sh /etc/kubernetes/pki/ca.crt $NODE:~
 
 # move files
-cat<<EOF | ssh $NODE
+cat<<EOF | ssh -T $NODE
 
 sudo mv -v ~/ca.crt /etc/kubernetes/pki/
 sudo mv -v ~/worker.key /etc/kubernetes/pki/kubelet.key

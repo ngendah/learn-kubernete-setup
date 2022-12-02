@@ -22,7 +22,7 @@ export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 
 # generate kubectl configuration node
-cat<<EOF | ssh $NODE
+cat<<EOF | ssh -T $NODE
 kubectl config set-cluster $CLUSTER_NAME \\
     --certificate-authority=/etc/kubernetes/pki/ca.crt \\
     --server=https://${MASTER_1}:6443 \\
@@ -44,7 +44,7 @@ sudo chmod -v 600 /etc/kubernetes/kubelet.kubeconfig
 EOF
 
 # generate kube-proxy configuration
-cat<<EOF | ssh $NODE
+cat<<EOF | ssh -T $NODE
 # kube-proxy configuration
 kubectl config set-cluster $CLUSTER_NAME \
     --certificate-authority=/etc/kubernetes/pki/ca.crt \

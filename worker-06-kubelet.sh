@@ -21,8 +21,9 @@ export NODE=$WORKER_1
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # download kubelet binary
-cat<<EOF | ssh $NODE
-wget -q --show-progress --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kubelet
+cat<<EOF | ssh -T $NODE
+echo "Downloading kubelet-$KUBERNETES_VERSION"
+wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kubelet
 sudo mv -v ./kubectl /usr/local/bin/
 sudo chmod -v +x /usr/local/bin/kubelet
 sudo chown -v root:root /usr/local/bin/kubelet
@@ -76,7 +77,7 @@ EOF
 scp $NODE_HOSTNAME.kubelet-config.yaml $NODE_HOSTNAME.kubelet.service $NODE:~
 
 # execute commands on worker node
-cat<<EOF | ssh $NODE
+cat<<EOF | ssh -T $NODE
 sudo mv -v ~/$NODE_HOSTNAME.kubelet-config.yaml /etc/kubernetes/
 sudo mv -v ~/"$NODE_HOSTNAME".kubelet.service /etc/systemd/system/
 sudo chmod -v 600 /etc/kubernetes/$NODE_HOSTNAME.kubelet-config.yaml

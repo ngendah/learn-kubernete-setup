@@ -21,8 +21,9 @@ export NODE=WORKER_1
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # download kube-proxy binary
-cat<<EOF | ssh $NODE
-wget -q --show-progress --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kube-proxy
+cat<<EOF | ssh -T $NODE
+echo "Downloading kube-proxy-$KUBERNETES_VERSION"
+wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kube-proxy
 sudo mv -v ./kubectl /usr/local/bin/
 sudo chmod -v +x /usr/local/bin/kube-proxy
 sudo chown -v root:root /usr/local/bin/kube-proxy
@@ -55,7 +56,7 @@ WantedBy=multi-user.target
 EOF
 
 scp kube-proxy-config.yaml kube-proxy.service $NODE:~
-cat<<EOF | ssh $NODE
+cat<<EOF | ssh -T $NODE
 sudo mv -v ~/kube-proxy-config.yaml /var/lib/kube-proxy/
 sudo mv -v ~/kube-proxy.service /etc/systemd/system/
 sudo chmod -v 600 /var/lib/kube-proxy/kube-proxy-config.yaml
