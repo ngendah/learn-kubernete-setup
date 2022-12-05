@@ -107,9 +107,9 @@ sudo mv -v ca.crt ca.key kube-apiserver.key kube-apiserver.crt \
     etcd-server.key etcd-server.crt \
     kube-controller-manager.key kube-controller-manager.crt \
     kube-scheduler.key kube-scheduler.crt \
-		/etc/kubernetes/pki/
+		$MASTER_CERT_DIR
 
 # copy and move admin key and certificate
 sudo mv admin.crt \
         admin.key \
-        /etc/kubernetes/pki/
+        $MASTER_CERT_DIR

@@ -5,4 +5,4 @@ wget --show-progress --https-only --timestamping \
         "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubectl"
 
 sudo chmod +x kubectl
-sudo mv -v kubectl /usr/local/bin/
+sudo mv -v kubectl "$MASTER_BIN_DIR"

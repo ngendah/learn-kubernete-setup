@@ -9,8 +9,8 @@ missing_counter="0"
 
 for certificate in $REQUIRED_CERTIFICATES
 do
-	key="/etc/kubernetes/pki/$certificate.key"
-	certificate="/etc/kubernetes/pki/$certificate.crt"
+	key="$MASTER_CERT_DIR/$certificate.key"
+	certificate="$MASTER_CERT_DIR/$certificate.crt"
 	if [[ ! -f $key ]]; then
 			echo "missing TLS key file: $key"
 			((missing_counter+=1))
@@ -32,14 +32,14 @@ fi
 
 # Admin configuration
 kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
     --embed-certs=true \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=admin.kubeconfig
 
 kubectl config set-credentials admin \
-    --client-certificate=/etc/kubernetes/pki/admin.crt \
-    --client-key=/etc/kubernetes/pki/admin.key \
+    --client-certificate=$MASTER_CERT_DIR/admin.crt \
+    --client-key=$MASTER_CERT_DIR/admin.key \
     --embed-certs=true \
     --kubeconfig=admin.kubeconfig
 
@@ -52,13 +52,13 @@ kubectl config use-context default --kubeconfig=admin.kubeconfig
 
 # kube-controller manager configuration
 kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=kube-controller-manager.kubeconfig 
 
 kubectl config set-credentials system:kube-controller-manager \
-    --client-certificate=/etc/kubernetes/pki/kube-controller-manager.crt \
-    --client-key=/etc/kubernetes/pki/kube-controller-manager.key \
+    --client-certificate=$MASTER_CERT_DIR/kube-controller-manager.crt \
+    --client-key=$MASTER_CERT_DIR/kube-controller-manager.key \
     --kubeconfig=kube-controller-manager.kubeconfig
 
 kubectl config set-context default \
@@ -70,13 +70,13 @@ kubectl config use-context default --kubeconfig=kube-controller-manager.kubeconf
 
 # kube-scheduler configuration
 kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=kube-scheduler.kubeconfig
 
 kubectl config set-credentials system:kube-scheduler \
-    --client-certificate=/etc/kubernetes/pki/kube-scheduler.crt \
-    --client-key=/etc/kubernetes/pki/kube-scheduler.key \
+    --client-certificate=$MASTER_CERT_DIR/kube-scheduler.crt \
+    --client-key=$MASTER_CERT_DIR/kube-scheduler.key \
     --kubeconfig=kube-scheduler.kubeconfig
 
 kubectl config set-context default \
