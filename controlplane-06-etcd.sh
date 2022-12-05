@@ -1,18 +1,7 @@
 #!/usr/bin/env bash
 
 # SETUP ETCD ON MASTER NODE
-# shellcheck disable=SC2155
-export MASTER_1=$(jq -r '.master_node_ip' cluster-config.json)
-export WORKER_1=$(jq -r '.worker_node_ip' cluster-config.json)
-export SERVICE_CIDR=$(jq -r '.service_cidr' cluster-config.json)
-export CLUSTER_NAME=$(jq '.cluster_name' cluster-config.json)
-export POD_CIDR=$(jq -r '.pod_cidr' cluster-config.json)
-export KUBERNETES_VERSION=$(jq -r '.kubernetes_version' cluster-config.json)
-export API_SERVICE=$(echo "$SERVICE_CIDR" | sed 's/0\/24/1/g')
-export ETCD_NAME=$(hostname -s)
-export ETCD_VERSION=$(jq -r '.etcd_version' cluster-config.json)
-export ETCD_DOWNLOAD_FILE="etcd-$ETCD_VERSION-linux-amd64"
-export INTERNAL_IP=$MASTER_1
+source common.sh
 
 # download binary
 wget -q --show-progress --https-only --timestamping \

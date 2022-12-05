@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+source common.sh
 # remove all created files
 
 #kubectl

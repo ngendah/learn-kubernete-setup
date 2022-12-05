@@ -1,9 +1,31 @@
 {
-  "cluster_name":"kubernetes",
-  "kubernetes_version": "v1.24.3",
-  "master_node_ip":"192.168.122.204",
-  "worker_node_ip": "192.168.122.4",
+  "script_data_dir": "./data/",
+  "cluster_name": "kubernetes",
+  "version": {
+    "kubernetes": "v1.24.3",
+    "etcd": "v3.5.3"
+  },
   "service_cidr": "10.96.0.0/24",
   "pod_cidr": "10.244.0.0/16",
-  "etcd_version": "v3.5.3"
+  "nodes": {
+    "control_plane": {
+      "ip": "192.168.122.211",
+      "paths": {
+        "home": "/etc/kubernetes",
+        "certificates": "/etc/kubernetes/pki",
+        "bin": "/usr/local/bin",
+        "services": "/etc/systemd/system",
+        "etcd": "/etc/etcd"
+      }
+    },
+    "worker": {
+      "ip": "192.168.122.129",
+      "paths": {
+        "home": "/etc/kubernetes",
+        "certificates": "/etc/kubernetes/pki",
+        "bin": "/usr/local/bin",
+        "services": "/etc/systemd/system"
+      }
+    }
+  }
 }

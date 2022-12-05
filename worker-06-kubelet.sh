@@ -1,21 +1,6 @@
 #!/usr/bin/env bash
 
-# SETUP WORKER NODE
-# KUBELET
-
-# Run the script on the master node
-# shellcheck disable=SC2155
-export MASTER_1=$(jq -r '.master_node_ip' cluster-config.json)
-export WORKER_1=$(jq -r  '.worker_node_ip' cluster-config.json)
-export SERVICE_CIDR=$(jq -r '.service_cidr' cluster-config.json)
-export CLUSTER_NAME=$(jq '.cluster_name' cluster-config.json)
-export POD_CIDR=$(jq -r '.pod_cidr' cluster-config.json)
-export KUBERNETES_VERSION=$(jq -r '.kubernetes_version' cluster-config.json)
-export API_SERVICE=$(echo "$SERVICE_CIDR" | sed 's/0\/24/1/g')
-export CLUSTER_DNS=$(echo "$SERVICE_CIDR" | sed 's/0\/24/10/g')
-export INTERNAL_IP=$MASTER_1
-
-export NODE=$WORKER_1
+source common.sh
 
 # get worker host name
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
@@ -62,7 +47,7 @@ Requires=containerd.service
 
 [Service]
 ExecStart=/usr/local/bin/kubelet \\
-  --config=/var/lib/kubelet/$NODE_HOSTNAME-kubelet-config.yaml \\
+  --config=/var/lib/kubelet/kubelet-config.yaml \\
   --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \\
   --kubeconfig=/var/lib/kubelet/kubelet.kubeconfig \\
   --v=2
@@ -78,8 +63,6 @@ scp $NODE_HOSTNAME.kubelet-config.yaml $NODE_HOSTNAME.kubelet.service $NODE:~
 
 # execute commands on worker node
 cat<<EOF | ssh -T $NODE
-sudo mv -v ~/$NODE_HOSTNAME.kubelet-config.yaml /etc/kubernetes/
-sudo mv -v ~/"$NODE_HOSTNAME".kubelet.service /etc/systemd/system/
-sudo chmod -v 600 /etc/kubernetes/$NODE_HOSTNAME.kubelet-config.yaml
-sudo chmod -v 600 /etc/systemd/system/$NODE_HOSTNAME.kubelet.service
+sudo mv -v ~/$NODE_HOSTNAME.kubelet-config.yaml /var/lib/kubelet/kubelet-config.yaml
+sudo mv -v ~/"$NODE_HOSTNAME".kubelet.service /etc/systemd/system/kubelet.service
 EOF
