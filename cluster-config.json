@@ -15,7 +15,8 @@
         "certificates": "/etc/kubernetes/pki",
         "bin": "/usr/local/bin",
         "services": "/etc/systemd/system",
-        "etcd": "/etc/etcd"
+        "etcd": "/etc/etcd",
+        "etcd_data_dir": "/var/lib/etcd"
       }
     },
     "worker": {
