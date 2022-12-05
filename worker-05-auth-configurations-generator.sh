@@ -11,13 +11,13 @@ export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 # generate kubectl configuration node
 cat<<EOF | ssh -T $NODE
 kubectl config set-cluster $CLUSTER_NAME \\
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \\
+    --certificate-authority=$WORKER_CERT_DIR/ca.crt \\
     --server=https://${MASTER_1}:6443 \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config set-credentials system:node:$NODE_HOSTNAME \\
-    --client-certificate=/etc/kubernetes/pki/$NODE_HOSTNAME.crt \\
-    --client-key=/etc/kubernetes/pki/$NODE_HOSTNAME.key \\
+    --client-certificate=$WORKER_CERT_DIR/$NODE_HOSTNAME.crt \\
+    --client-key=$WORKER_CERT_DIR/$NODE_HOSTNAME.key \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config set-context default \\
@@ -33,13 +33,13 @@ EOF
 cat<<EOF | ssh -T $NODE
 # kube-proxy configuration
 kubectl config set-cluster $CLUSTER_NAME \
-    --certificate-authority=/etc/kubernetes/pki/ca.crt \
+    --certificate-authority=$WORKER_CERT_DIR/ca.crt \
     --server=https://$MASTER_1:6443 \
     --kubeconfig=kube-proxy.kubeconfig
 
 kubectl config set-credentials system:kube-proxy \
-    --client-certificate=/etc/kubernetes/pki/kube-proxy.crt \
-    --client-key=/etc/kubernetes/pki/kube-proxy.key \
+    --client-certificate=$WORKER_CERT_DIR/kube-proxy.crt \
+    --client-key=$WORKER_CERT_DIR/kube-proxy.key \
     --kubeconfig=kube-proxy.kubeconfig
 
 kubectl config set-context default \

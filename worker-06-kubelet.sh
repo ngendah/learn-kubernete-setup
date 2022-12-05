@@ -25,7 +25,7 @@ authentication:
   webhook:
     enabled: true
   x509:
-    clientCAFile: /etc/kubernetes/pki/ca.crt
+    clientCAFile: $WORKER_CERT_DIR/ca.crt
 authorization:
   mode: Webhook
 clusterDomain: cluster.local
@@ -33,8 +33,8 @@ clusterDNS:
   - ${CLUSTER_DNS}
 resolvConf: /run/systemd/resolve/resolv.conf
 runtimeRequestTimeout: "15m"
-tlsCertFile: /etc/kubernetes/pki/kubelet.crt
-tlsPrivateKeyFile: /etc/kubernetes/pki/kubelet.key
+tlsCertFile: $WORKER_CERT_DIR/kubelet.crt
+tlsPrivateKeyFile: $WORKER_CERT_DIR/kubelet.key
 registerNode: true
 EOF
 

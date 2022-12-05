@@ -7,7 +7,7 @@ openssl genrsa -out kube-proxy.key 2048
 openssl req -new -key kube-proxy.key \
     -subj "/CN=system:kube-proxy/O=system:node-proxier" -out kube-proxy.csr
 openssl x509 -req -in kube-proxy.csr \
-    -CA /etc/kubernetes/pki/ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
+    -CA $MASTER_CERT_DIR/ca.crt -CAkey ca.key -CAcreateserial  -out kube-proxy.crt -days 1000
 
 
 # kubelet certificate
@@ -30,23 +30,23 @@ openssl req -new -key worker.key \
         -subj "/CN=system:node:worker/O=system:nodes" \
         -out worker.csr -config openssl-worker.cnf
 openssl x509 -req -in worker.csr \
-              -CA /etc/kubernetes/pki/ca.crt \
-              -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial \
+              -CA $MASTER_CERT_DIR/ca.crt \
+              -CAkey $MASTER_CERT_DIR/ca.key -CAcreateserial \
               -out worker.crt -extensions v3_req \
               -extfile openssl-worker.cnf -days 1000
 
 # copy files
-scp kube-proxy.key kube-proxy.crt worker.key worker.crt /etc/kubernetes/pki/ca.crt $NODE:~
+scp kube-proxy.key kube-proxy.crt worker.key worker.crt $MASTER_CERT_DIR/ca.crt $NODE:~
 
 # move files
 cat<<EOF | ssh -T $NODE
 
-sudo mv -v ~/ca.crt /etc/kubernetes/pki/
-sudo mv -v ~/worker.key /etc/kubernetes/pki/kubelet.key
-sudo mv -v ~/worker.crt /etc/kubernetes/pki/kubelet.crt
-sudo mv -v ~/kube-proxy.key /etc/kubernetes/pki/kube-proxy.key
-sudo mv -v ~/kube-proxy.crt /etc/kubernetes/pki/kube-proxy.crt
+sudo mv -v ~/ca.crt $WORKER_CERT_DIR/
+sudo mv -v ~/worker.key $WORKER_CERT_DIR/kubelet.key
+sudo mv -v ~/worker.crt $WORKER_CERT_DIR/kubelet.crt
+sudo mv -v ~/kube-proxy.key $WORKER_CERT_DIR/kube-proxy.key
+sudo mv -v ~/kube-proxy.crt $WORKER_CERT_DIR/kube-proxy.crt
 
-sudo chown -Rv root:root /etc/kubernetes/pki/
-sudo chmod -Rv 600 /etc/kubernetes/pki/
+sudo chown -Rv root:root $WORKER_CERT_DIR/
+sudo chmod -Rv 600 $WORKER_CERT_DIR/
 EOF
