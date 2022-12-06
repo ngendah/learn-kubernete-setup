@@ -15,9 +15,9 @@ sudo mv -v $ETCD_DOWNLOAD_FILE/etcd* \
 # copy etcd TLS key and certificate
 sudo cp $MASTER_CERT_DIR/etcd-server.key\
         $MASTER_CERT_DIR/etcd-server.crt \
-        /etc/etcd/
+        $ETCD_DIR/
 sudo ln -vs $MASTER_CERT_DIR/ca.crt \
-            /etc/etcd/ca.crt
+            $ETCD_DIR/ca.crt
 
 # create systemd unit file
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
@@ -27,14 +27,14 @@ Documentation=https://github.com/coreos
 
 [Service]
 ExecStart=/usr/local/bin/etcd \\
-  --name ${ETCD_NAME} \\
-  --data-dir=/var/lib/etcd \\
-  --cert-file=/etc/etcd/etcd-server.crt \\
-  --key-file=/etc/etcd/etcd-server.key \\
-  --peer-cert-file=/etc/etcd/etcd-server.crt \\
-  --peer-key-file=/etc/etcd/etcd-server.key \\
-  --trusted-ca-file=/etc/etcd/ca.crt \\
-  --peer-trusted-ca-file=/etc/etcd/ca.crt \\
+  --name=${ETCD_NAME} \\
+  --data-dir=$ETCD_DATA_DIR \\
+  --cert-file=$ETCD_DIR/etcd-server.crt \\
+  --key-file=$ETCD_DIR/etcd-server.key \\
+  --peer-cert-file=$ETCD_DIR/etcd-server.crt \\
+  --peer-key-file=$ETCD_DIR/etcd-server.key \\
+  --trusted-ca-file=$ETCD_DIR/ca.crt \\
+  --peer-trusted-ca-file=$ETCD_DIR/ca.crt \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
   --initial-advertise-peer-urls=https://${INTERNAL_IP}:2380 \\
