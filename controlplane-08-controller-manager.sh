@@ -2,11 +2,49 @@
 
 source common.sh
 
+# Binary
 wget --show-progress --https-only --timestamping \
         "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kube-controller-manager"
 
 sudo mv -v kube-controller-manager $BIN_DIR/
 
+# Certificate
+openssl genrsa -out $DATA_DIR/kube-controller-manager.key 2048
+openssl req -new -key $DATA_DIR/kube-controller-manager.key \
+    -subj "/CN=system:kube-controller-manager/O=system:kube-controller-manager" \
+    -out $DATA_DIR/kube-controller-manager.csr
+openssl x509 -req -in $DATA_DIR/kube-controller-manager.csr \
+    -CA $MASTER_CERT_DIR/ca.crt \
+    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CAcreateserial \
+    -out $DATA_DIR/kube-controller-manager.crt -days 1000
+
+sudo mv -v $DATA_DIR/kube-controller-manager.key \
+          $DATA_DIR/kube-controller-manager.crt \
+          $MASTER_CERT_DIR
+
+# Kube-config
+kubectl config set-cluster "$CLUSTER_NAME" \
+    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
+    --server=https://127.0.0.1:6443 \
+    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+
+kubectl config set-credentials system:kube-controller-manager \
+    --client-certificate=$MASTER_CERT_DIR/kube-controller-manager.crt \
+    --client-key=$MASTER_CERT_DIR/kube-controller-manager.key \
+    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+
+kubectl config set-context default \
+    --cluster="$CLUSTER_NAME" \
+    --user=system:kube-controller-manager \
+    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+
+kubectl config use-context default \
+    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+
+sudo mv -v $DATA_DIR/kube-controller-manager.kubeconfig $MASTER_CONFIG_DIR
+
+# Service
 cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
 [Unit]
 Description=Kubernetes Controller Manager
@@ -15,8 +53,8 @@ Documentation=https://github.com/kubernetes/kubernetes
 [Service]
 ExecStart=$BIN_DIR/kube-controller-manager \\
   --allocate-node-cidrs=true \\
-  --authentication-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \\
-  --authorization-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \\
+  --authentication-kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
+  --authorization-kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
   --bind-address=127.0.0.1 \\
   --client-ca-file=$MASTER_CERT_DIR/ca.crt \\
   --cluster-cidr=${POD_CIDR} \\
@@ -24,7 +62,7 @@ ExecStart=$BIN_DIR/kube-controller-manager \\
   --cluster-signing-cert-file=$MASTER_CERT_DIR/ca.crt \\
   --cluster-signing-key-file=$MASTER_CERT_DIR/ca.key \\
   --controllers=*,bootstrapsigner,tokencleaner \\
-  --kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \\
+  --kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
   --leader-elect=true \\
   --node-cidr-mask-size=24 \\
   --requestheader-client-ca-file=$MASTER_CERT_DIR/ca.crt \\
