@@ -32,6 +32,7 @@ export KUBELET_CERT_DIR=$(jq -r '.nodes.worker.kubelet.paths.certificates' clust
 
 export KUBE_PROXY_HOME_DIR=$(jq -r '.nodes.worker.kube_proxy.paths.config' cluster-config.json)
 export KUBE_PROXY_CERT_DIR=$(jq -r '.nodes.worker.kube_proxy.paths.certificates' cluster-config.json)
+export KUBE_PROXY_CONFIG_DIR=$KUBE_PROXY_HOME_DIR
 
 export ETCD_NAME=$(hostname -s)
 export ETCD_VERSION=$(jq -r '.nodes.control_plane.etcd.version' cluster-config.json)
