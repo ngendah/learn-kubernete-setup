@@ -10,7 +10,7 @@ wget -q --show-progress --https-only --timestamping \
 # extract and move to bin directory
 tar -xvf "$ETCD_DOWNLOAD_FILE.tar.gz" 
 sudo mv -v $ETCD_DOWNLOAD_FILE/etcd* \
-        /usr/local/bin/
+        $BIN_DIR/
 
 # copy etcd TLS key and certificate
 sudo cp $MASTER_CERT_DIR/etcd-server.key\
@@ -26,7 +26,7 @@ Description=etcd
 Documentation=https://github.com/coreos
 
 [Service]
-ExecStart=/usr/local/bin/etcd \\
+ExecStart=$BIN_DIR/etcd \\
   --name=${ETCD_NAME} \\
   --data-dir=$ETCD_DATA_DIR \\
   --cert-file=$ETCD_DIR/etcd-server.crt \\

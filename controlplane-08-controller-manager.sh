@@ -5,7 +5,7 @@ source common.sh
 wget --show-progress --https-only --timestamping \
         "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kube-controller-manager"
 
-sudo mv -v kube-controller-manager /usr/local/bin/
+sudo mv -v kube-controller-manager $BIN_DIR/
 
 cat <<EOF | sudo tee /etc/systemd/system/kube-controller-manager.service
 [Unit]
@@ -13,7 +13,7 @@ Description=Kubernetes Controller Manager
 Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
-ExecStart=/usr/local/bin/kube-controller-manager \\
+ExecStart=$BIN_DIR/kube-controller-manager \\
   --allocate-node-cidrs=true \\
   --authentication-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \\
   --authorization-kubeconfig=/etc/kubernetes/kube-controller-manager.kubeconfig \\

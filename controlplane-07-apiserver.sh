@@ -4,7 +4,7 @@ source common.sh
 
 wget --show-progress --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kube-apiserver
 
-sudo mv -v  kube-apiserver /usr/local/bin/
+sudo mv -v  kube-apiserver $BIN_DIR/
 
 # Encryption configuration
 # it will store the key to encrypt secrets
@@ -30,7 +30,7 @@ Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
 
 [Service]
-ExecStart=/usr/local/bin/kube-apiserver \\
+ExecStart=$BIN_DIR/kube-apiserver \\
   --advertise-address=${INTERNAL_IP} \\
   --allow-privileged=true \\
   --apiserver-count=1 \\
