@@ -3,11 +3,18 @@
 source common.sh
 
 # Certificate
-openssl genrsa -out admin.key 2048
-openssl req -new -key admin.key -subj "/CN=admin/O=system:masters" -out admin.csr
-openssl x509 -req -in admin.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out admin.crt -days 1000
+openssl genrsa -out $DATA_DIR/admin.key 2048
+openssl req -new -key $DATA_DIR/admin.key \
+      -subj "/CN=admin/O=system:masters" \
+      -out $DATA_DIR/admin.csr
+openssl x509 -req -in $DATA_DIR/admin.csr \
+      -CA $MASTER_CERT_DIR/ca.crt \
+      -CAkey $MASTER_CERT_DIR/ca.key \
+      -CAcreateserial  \
+      -out $DATA_DIR/admin.crt \
+      -days 1000
 
-sudo mv admin.crt admin.key \
+sudo mv -v $DATA_DIR/admin.crt $DATA_DIR/admin.key \
         $MASTER_CERT_DIR
 
 # Kube-config
@@ -21,14 +28,14 @@ kubectl config set-credentials admin \
     --client-certificate=$MASTER_CERT_DIR/admin.crt \
     --client-key=$MASTER_CERT_DIR/admin.key \
     --embed-certs=true \
-    --kubeconfig=admin.kubeconfig
+    --kubeconfig=$DATA_DIR/admin.kubeconfig
 
  kubectl config set-context default \
     --cluster="$CLUSTER_NAME" \
     --user=admin \
-    --kubeconfig=admin.kubeconfig
+    --kubeconfig=$DATA_DIR/admin.kubeconfig
 
-kubectl config use-context default --kubeconfig=admin.kubeconfig
+kubectl config use-context default --kubeconfig=$DATA_DIR/admin.kubeconfig
 
-sudo mv -v admin.kubeconfig \
+sudo mv -v $DATA_DIR/admin.kubeconfig \
 			$MASTER_CONFIG_DIR
