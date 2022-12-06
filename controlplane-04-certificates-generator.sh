@@ -19,12 +19,6 @@ openssl req -new -key kube-controller-manager.key \
 openssl x509 -req -in kube-controller-manager.csr \
     -CA ca.crt -CAkey ca.key -CAcreateserial -out kube-controller-manager.crt -days 1000
 
-# kube scheduler certificate
-openssl genrsa -out kube-scheduler.key 2048
-openssl req -new -key kube-scheduler.key \
-    -subj "/CN=system:kube-scheduler/O=system:kube-scheduler" -out kube-scheduler.csr
-openssl x509 -req -in kube-scheduler.csr -CA ca.crt -CAkey ca.key -CAcreateserial  -out kube-scheduler.crt -days 1000
-
 # kube-apiserver certificate
 cat > openssl.cnf <<EOF
 [req]
@@ -84,7 +78,6 @@ sudo mv -v ca.crt ca.key kube-apiserver.key kube-apiserver.crt \
     apiserver-kubelet-client.crt apiserver-kubelet-client.key \
     service-account.key service-account.crt \
     kube-controller-manager.key kube-controller-manager.crt \
-    kube-scheduler.key kube-scheduler.crt \
 		$MASTER_CERT_DIR
 
 # copy and move admin key and certificate

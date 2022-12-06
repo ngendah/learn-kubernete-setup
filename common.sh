@@ -17,11 +17,13 @@ export SERVICES_DIR=$(jq -r '.nodes.paths.services' cluster-config.json)
 export MASTER_HOME_DIR=$(jq -r '.nodes.control_plane.kubernetes.paths.config' cluster-config.json)
 export MASTER_CERT_DIR=$(jq -r '.nodes.control_plane.kubernetes.paths.certificates' cluster-config.json)
 export MASTER_AUDIT_LOG_DIR=$(jq -r '.nodes.control_plane.kubernetes.paths.audit_log' cluster-config.json)
+export MASTER_CONFIG_DIR=$MASTER_HOME_DIR
 export MASTER_BIN_DIR=$BIN_DIR
 export MASTER_SERVICES_DIR=$SERVICES_DIR
 
 export WORKER_HOME_DIR=$(jq -r '.nodes.worker.kubernetes.paths.config' cluster-config.json)
 export WORKER_CERT_DIR=$(jq -r '.nodes.worker.kubernetes.paths.certificates' cluster-config.json)
+export WORKER_CONFIG_DIR=$WORKER_HOME_DIR
 export WORKER_BIN_DIR=$BIN_DIR
 export WORKER_SERVICES_DIR=$SERVICES_DIR
 

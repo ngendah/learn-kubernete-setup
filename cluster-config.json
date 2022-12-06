@@ -14,7 +14,8 @@
       "kubernetes": {
         "paths": {
           "config": "/etc/kubernetes",
-          "certificates": "/etc/kubernetes/pki"
+          "certificates": "/etc/kubernetes/pki",
+          "audit_log": "/var/log/kubernetes/"
         }
       },
       "etcd": {

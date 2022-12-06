@@ -68,24 +68,6 @@ kubectl config set-context default \
 
 kubectl config use-context default --kubeconfig=kube-controller-manager.kubeconfig
 
-# kube-scheduler configuration
-kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
-    --server=https://127.0.0.1:6443 \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-kubectl config set-credentials system:kube-scheduler \
-    --client-certificate=$MASTER_CERT_DIR/kube-scheduler.crt \
-    --client-key=$MASTER_CERT_DIR/kube-scheduler.key \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-kubectl config set-context default \
-    --cluster="$CLUSTER_NAME" \
-    --user=system:kube-scheduler \
-    --kubeconfig=kube-scheduler.kubeconfig
-
-kubectl config use-context default --kubeconfig=kube-scheduler.kubeconfig
-
 # move configurations
 sudo mv -v  kube-controller-manager.kubeconfig \
 			kube-scheduler.kubeconfig \
