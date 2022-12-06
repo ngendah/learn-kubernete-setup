@@ -2,6 +2,7 @@
 
 source common.sh
 
+# Binary
 wget -q --show-progress --https-only --timestamping \
   "https://github.com/coreos/etcd/releases/download/$ETCD_VERSION/$ETCD_DOWNLOAD_FILE.tar.gz"
 
@@ -9,12 +10,41 @@ tar -xvf "$ETCD_DOWNLOAD_FILE.tar.gz"
 sudo mv -v $ETCD_DOWNLOAD_FILE/etcd* \
         $BIN_DIR/
 
-sudo cp $MASTER_CERT_DIR/etcd-server.key\
-        $MASTER_CERT_DIR/etcd-server.crt \
+# Certificate
+cat > $DATA_DIR/openssl-etcd.cnf <<EOF
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+[alt_names]
+IP.1 = ${MASTER_1}
+IP.2 = 127.0.0.1
+EOF
+
+openssl genrsa -out $DATA_DIR/etcd-server.key 2048
+openssl req -new -key $DATA_DIR/etcd-server.key \
+    -subj "/CN=etcd-server/O=Kubernetes" \
+    -out $DATA_DIR/etcd-server.csr \
+    -config $DATA_DIR/openssl-etcd.cnf
+openssl x509 -req -in $DATA_DIR/etcd-server.csr \
+    -CA $MASTER_CERT_DIR/ca.crt \
+    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CAcreateserial  \
+    -out $DATA_DIR/etcd-server.crt \
+    -extensions v3_req \
+    -extfile $DATA_DIR/openssl-etcd.cnf -days 1000
+
+sudo mv -v $DATA_DIR/etcd-server.key \
+        $DATA_DIR/etcd-server.crt \
         $ETCD_DIR/
 sudo ln -vs $MASTER_CERT_DIR/ca.crt \
             $ETCD_DIR/ca.crt
 
+# service
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
 [Unit]
 Description=etcd
