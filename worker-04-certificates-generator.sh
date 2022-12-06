@@ -2,6 +2,8 @@
 
 source common.sh
 
+export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
+
 # kube proxy certificate
 openssl genrsa -out kube-proxy.key 2048
 openssl req -new -key kube-proxy.key \
@@ -27,7 +29,7 @@ EOF
 
 openssl genrsa -out worker.key 2048
 openssl req -new -key worker.key \
-        -subj "/CN=system:node:worker/O=system:nodes" \
+        -subj "/CN=system:node:${NODE_HOSTNAME}/O=system:nodes" \
         -out worker.csr -config openssl-worker.cnf
 openssl x509 -req -in worker.csr \
               -CA $MASTER_CERT_DIR/ca.crt \

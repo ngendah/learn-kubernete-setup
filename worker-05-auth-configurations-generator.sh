@@ -8,7 +8,7 @@ export NODE=$WORKER_1
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 
-# generate kubectl configuration node
+# generate kubelet configuration node
 cat<<EOF | ssh -T $NODE
 kubectl config set-cluster $CLUSTER_NAME \\
     --certificate-authority=$WORKER_CERT_DIR/ca.crt \\
