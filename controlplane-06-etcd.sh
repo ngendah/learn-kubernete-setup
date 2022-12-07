@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
 # Binary
@@ -76,6 +77,19 @@ RestartSec=5
 WantedBy=multi-user.target
 EOF
 
-
 rm -vf "$ETCD_DOWNLOAD_FILE.tar.gz"
 rm -vrf $ETCD_DOWNLOAD_FILE
+
+for DIR in $MASTER_CONFIG_DIR $MASTER_CERT_DIR $BIN_DIR $SERVICES_DIR $ETCD_DIR;
+do
+  sudo chown -Rv root:root $DIR/etcd*
+  if [ $DIR == $BIN_DIR ]; then
+    sudo chmod -Rv 500 $DIR/etcd*
+  else
+    sudo chmod -Rv 600 $DIR/etcd*
+  fi
+  if [ $DIR == $SERVICES_DIR ]; then
+    sudo systemctl enable etcd*
+    sudo systemctl start etcd*
+  fi
+done

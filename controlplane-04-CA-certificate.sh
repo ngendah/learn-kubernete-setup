@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
 # Certificate Authority
@@ -14,5 +15,7 @@ openssl x509 -req -in $DATA_DIR/ca.csr \
       -days 1000
 
 
-sudo mv -v $DATA_DIR/ca.crt $DATA_DIR/ca.key \
-		$MASTER_CERT_DIR
+sudo mv -v $DATA_DIR/ca.crt $DATA_DIR/ca.key $MASTER_CERT_DIR
+
+sudo chown -v root:root $MASTER_CERT_DIR/ca.key
+sudo chmod -v 600 $MASTER_CERT_DIR/ca*

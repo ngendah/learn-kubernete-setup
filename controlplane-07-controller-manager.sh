@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
 # Binary
@@ -77,3 +78,18 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
+# Change permissions and start service
+for DIR in $MASTER_CONFIG_DIR $MASTER_CERT_DIR $BIN_DIR $SERVICES_DIR;
+do
+  sudo chown -Rv root:root $DIR/kube-controller*
+  if [ $DIR == $BIN_DIR ]; then
+    sudo chmod -Rv 500 $DIR/kube-controller*
+  else
+    sudo chmod -Rv 600 $DIR/kube-controller*
+  fi
+  if [ $DIR == $SERVICES_DIR ]; then
+    sudo systemctl enable kube-controller*
+    sudo systemctl start kube-controller*
+  fi
+done

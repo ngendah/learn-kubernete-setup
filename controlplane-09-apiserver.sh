@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
 # Binary
@@ -145,3 +146,18 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 EOF
+
+
+for DIR in $MASTER_CONFIG_DIR $MASTER_CERT_DIR $BIN_DIR $SERVICES_DIR;
+do
+  sudo chown -Rv root:root $DIR/*apiserver*
+  if [ $DIR == $BIN_DIR ]; then
+    sudo chmod -Rv 500 $DIR/*apiserver*
+  else
+    sudo chmod -Rv 600 $DIR/*apiserver* $DIR/service-*
+  fi
+  if [ $DIR == $SERVICES_DIR ]; then
+    sudo systemctl enable kube-apiserver*
+    sudo systemctl start kube-apiserver*
+  fi
+done

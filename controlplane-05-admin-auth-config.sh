@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
 # Certificate
@@ -37,5 +38,6 @@ kubectl config set-credentials admin \
 
 kubectl config use-context default --kubeconfig=$DATA_DIR/admin.kubeconfig
 
-sudo mv -v $DATA_DIR/admin.kubeconfig \
-			$MASTER_CONFIG_DIR
+sudo cp -v $DATA_DIR/admin.kubeconfig $MASTER_CONFIG_DIR
+sudo chown -v root:root $MASTER_CONFIG_DIR/admin.kubeconfig
+sudo chmod -v 600 $MASTER_CONFIG_DIR/admin.kubeconfig

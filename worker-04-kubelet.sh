@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
+# shellcheck disable=SC2155
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # Binary
@@ -9,9 +11,9 @@ cat<<EOF | ssh -T $NODE
 echo "Downloading kubelet-$KUBERNETES_VERSION"
 wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kubelet
 sudo mv -v ./kubectl $BIN_DIR
-sudo chmod -v +x $BIN_DIR/kubelet
+
 sudo chown -v root:root $BIN_DIR/kubelet
-sudo chmod -v 600 $BIN_DIR/kubelet
+sudo chmod -v 500 $BIN_DIR/kubelet
 EOF
 
 # Certificate
@@ -48,6 +50,9 @@ cat<<EOF | ssh -T $NODE
 sudo mv -v ~/ca.crt $WORKER_CERT_DIR/
 sudo mv -v ~/kubelet.key $KUBELET_CERT_DIR/kubelet.key
 sudo mv -v ~/kubelet.crt $KUBELET_CERT_DIR/kubelet.crt
+
+sudo chown -v root:root $KUBELET_CERT_DIR/kubelet.key
+sudo chmod -v 600 $KUBELET_CERT_DIR/kubelet.key
 EOF
 
 
@@ -69,7 +74,9 @@ kubectl config set-context default \\
     --kubeconfig=kubelet.kubeconfig
 
 kubectl config use-context default --kubeconfig=kubelet.kubeconfig
+
 sudo mv -v ~/kubelet.kubeconfig $KUBELET_CONFIG_DIR
+sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet.kubeconfig
 EOF
 
 
@@ -119,5 +126,14 @@ scp $DATA_DIR/kubelet-config.yaml $DATA_DIR/kubelet.service $NODE:~
 
 cat<<EOF | ssh -T $NODE
 sudo mv -v ~/kubelet-config.yaml $KUBELET_CONFIG_DIR
-sudo mv -v ~/kubelet.service /etc/systemd/system/kubelet.service
+sudo mv -v ~/kubelet.service $SERVICES_DIR/kubelet.service
+
+sudo chown -v root:root $KUBELET_CONFIG_DIR/kubelet-config.yaml
+sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet-config.yaml
+
+sudo chown -v root:root $SERVICES_DIR/kubelet.service
+sudo chmod -v 600 $SERVICES_DIR/kubelet.service
+
+sudo systemctl enable kubelet*
+sudo systemctl start kubelet*
 EOF

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
 
+# shellcheck disable=SC2155
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 # Binary
@@ -9,7 +11,9 @@ cat<<EOF | ssh -T $NODE
 echo "Downloading kube-proxy-$KUBERNETES_VERSION"
 wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kube-proxy
 sudo mv -v ./kube-proxy $BIN_DIR
-sudo chmod -v +x $BIN_DIR/kube-proxy
+
+sudo chown -v root:root $BIN_DIR/kube-proxy
+sudo chmod -v 500 $BIN_DIR/kube-proxy
 EOF
 
 # Certificate
@@ -55,13 +59,6 @@ scp $MASTER_CERT_DIR/ca.crt\
     $DATA_DIR/kube-proxy.service \
     $NODE:~
 
-cat<<EOF | ssh -T $NODE
-sudo mv -v ~/ca.crt $WORKER_CERT_DIR
-sudo mv -v ~/kube-proxy.key ~/kube-proxy.crt $KUBE_PROXY_CERT_DIR
-sudo mv -v ~/kube-proxy-config.yaml $KUBE_PROXY_CONFIG_DIR
-sudo mv -v ~/kube-proxy.service /etc/systemd/system/
-EOF
-
 # Kube-config
 cat<<EOF | ssh -T $NODE
 kubectl config set-cluster $CLUSTER_NAME \
@@ -80,5 +77,26 @@ kubectl config set-context default \
     --kubeconfig=kube-proxy.kubeconfig
 
 kubectl config use-context default --kubeconfig=kube-proxy.kubeconfig
+
 sudo mv -v ~/kube-proxy.kubeconfig $KUBE_PROXY_CONFIG_DIR
+
+sudo chown -Rv root:root $KUBE_PROXY_KUBE_PROXY_CONFIG_DIR
+sudo chmod -Rv 600 $KUBE_PROXY_KUBE_PROXY_CONFIG_DIR
+EOF
+
+
+cat<<EOF | ssh -T $NODE
+sudo mv -v ~/ca.crt $WORKER_CERT_DIR
+
+sudo mv -v ~/kube-proxy.key ~/kube-proxy.crt $KUBE_PROXY_CERT_DIR
+sudo mv -v ~/kube-proxy-config.yaml $KUBE_PROXY_CONFIG_DIR
+sudo mv -v ~/kube-proxy.service $SERVICES_DIR
+
+sudo chown -Rv root:root $KUBE_PROXY_CERT_DIR
+sudo chmod -Rv 600 $KUBE_PROXY_CERT_DIR
+sudo chown -v root:root $SERVICES_DIR/kube-proxy.service
+sudo chmod -v 600 $SERVICES_DIR/kube-proxy.service
+
+sudo systemctl enable kube-proxy*
+sudo systemctl start kube-proxy*
 EOF
