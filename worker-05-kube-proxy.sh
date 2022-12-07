@@ -17,7 +17,7 @@ openssl genrsa -out $DATA_DIR/kube-proxy.key 2048
 openssl req -new -key $DATA_DIR/kube-proxy.key \
     -subj "/CN=system:kube-proxy/O=system:node-proxier" \
     -out $DATA_DIR/kube-proxy.csr
-openssl x509 -req -in kube-proxy.csr \
+openssl x509 -req -in $DATA_DIR/kube-proxy.csr \
     -CA $MASTER_CERT_DIR/ca.crt \
     -CAkey $MASTER_CERT_DIR/ca.key \
     -CAcreateserial \
