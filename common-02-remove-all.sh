@@ -6,26 +6,26 @@ source common.sh
 # stop all services
 
 cat<<EOF | ssh -T $NODE
-sudo systemctl enable kube-proxy.service
-sudo systemctl start kube-proxy.service
+sudo systemctl -q enable kube-proxy.service
+sudo systemctl -q start kube-proxy.service
 
-sudo systemctl disable kubelet.service
-sudo systemctl stop kubelet.service
+sudo systemctl -q disable kubelet.service
+sudo systemctl -q stop kubelet.service
 
 sudo systemctl daemon-reload
 EOF
 
-sudo systemctl disable kube-apiserver.service
-sudo systemctl stop kube-apiserver.service
+sudo systemctl -q disable kube-apiserver.service
+sudo systemctl -q stop kube-apiserver.service
 
-sudo systemctl disable kube-scheduler.service
-sudo systemctl stop kube-scheduler.service
+sudo systemctl -q disable kube-scheduler.service
+sudo systemctl -q stop kube-scheduler.service
 
-sudo systemctl disable kube-controller-manager.service
-sudo systemctl stop kube-controller-manager.service
+sudo systemctl -q disable kube-controller-manager.service
+sudo systemctl -q stop kube-controller-manager.service
 
-sudo systemctl disable etcd.service
-sudo systemctl stop etcd.service
+sudo systemctl -q disable etcd.service
+sudo systemctl -q stop etcd.service
 
 sudo systemctl daemon-reload
 
@@ -41,7 +41,7 @@ sudo rm -vf $SERVICES_DIR/kube-apiserver.service
 sudo rm -vf $SERVICES_DIR/kube-controller-manager.service
 sudo rm -vf $SERVICES_DIR/kube-scheduler.service
 
-sudo rm -rvf $DATA
+sudo rm -rvf $DATA_DIR
 sudo rm -rvf $MASTER_CERT_DIR
 sudo rm -rvf $MASTER_CONFIG_DIR
 sudo rm -rvf $ETCD_DIR
@@ -60,3 +60,5 @@ sudo rm -rvf $KUBELET_CONFIG_DIR
 sudo rm -rvf $KUBE_PROXY_CERT_DIR
 sudo rm -rvf $KUBE_PROXY_CONFIG_DIR
 EOF
+
+echo "Remove all complete"
