@@ -29,6 +29,7 @@ export WORKER_SERVICES_DIR=$SERVICES_DIR
 
 export KUBELET_HOME_DIR=$(jq -r '.nodes.worker.kubelet.paths.config' cluster-config.json)
 export KUBELET_CERT_DIR=$(jq -r '.nodes.worker.kubelet.paths.certificates' cluster-config.json)
+export KUBELET_CONFIG_DIR=$KUBELET_HOME_DIR
 
 export KUBE_PROXY_HOME_DIR=$(jq -r '.nodes.worker.kube_proxy.paths.config' cluster-config.json)
 export KUBE_PROXY_CERT_DIR=$(jq -r '.nodes.worker.kube_proxy.paths.certificates' cluster-config.json)
