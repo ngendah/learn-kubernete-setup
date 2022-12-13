@@ -15,7 +15,7 @@ There are alternatives;
   - Kubernetes concepts documentation is available [here.](https://kubernetes.io/docs/concepts/overview/components/)
 
 - 2 VM servers installed with `Ubuntu 22.04 server` with the minimal installation.
-  - one server shall be the master and the other a worker. You can name the master as `control` and the worker as `node01`.
+  - one server shall be the master and the other a worker.
 
 - The same user configured on the master and worker node.
   - This requirement simplifies ssh logins and command execution. 
@@ -81,6 +81,8 @@ There are alternatives;
        source ./common.sh
        printenv
       ```
+
+    - `Journalctl` with the service unit name
 
 
 ## Credits
