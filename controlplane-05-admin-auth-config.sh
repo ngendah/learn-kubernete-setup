@@ -23,7 +23,7 @@ kubectl config set-cluster "$CLUSTER_NAME" \
     --certificate-authority=$MASTER_CERT_DIR/ca.crt \
     --embed-certs=true \
     --server=https://127.0.0.1:6443 \
-    --kubeconfig=admin.kubeconfig
+    --kubeconfig=$DATA_DIR/admin.kubeconfig
 
 kubectl config set-credentials admin \
     --client-certificate=$MASTER_CERT_DIR/admin.crt \
