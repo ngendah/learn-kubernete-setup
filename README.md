@@ -1,24 +1,32 @@
 ## Learn Kubernetes set-up, first principles
 
+why?
+
+1. provide a simple and clear way to separately install each of the kubernetes components from scratch on a bare local VM.
+2. provide standalone scripts that can easily be read and adjusted.
+
+There are alternatives;
+
+1. [local-cluster by kubernetes](https://github.com/kubernetes/kubernetes/blob/master/hack/local-up-cluster.sh)
+2. [Kubernetes the hard way](https://github.com/kelseyhightower/kubernetes-the-hard-way)
+
 ## Pre-requisites
-- Knowledge of Kubernetes and its components.
+- Some knowledge of Kubernetes and its components.
   - Kubernetes concepts documentation is available [here.](https://kubernetes.io/docs/concepts/overview/components/)
 
-- 2 servers installed with `Ubuntu 22.04 server` with the minimal installation.
+- 2 VM servers installed with `Ubuntu 22.04 server` with the minimal installation.
   - one server shall be the master and the other a worker. You can name the master as `control` and the worker as `node01`.
 
-- The same user is configured on the master and worker node.
+- The same user configured on the master and worker node.
   - This requirement simplifies ssh logins and command execution. 
-  - By default, ssh uses the current login user as its default username.
-    Example:
-    server-1 ip is `192.167.10.1` and server-2 ip is `192.167.10.2` and both have the same logged-in user `foo` 
-    from server-1 you can ssh into server-2 simply `ssh 192.167.10.2` instead of the long form `ssh foo@192.167.10.2`.
-  - This also applies for other `ssh` related commands such as `ssh-copy-id` e.tc.
 
 - The master node user can ssh into the worker node.
-  - Generate ssh key pair on the master node, without a passphrase. Defaults settings are recommended.
+  - Generate ssh key pair on the master node, without a passphrase.
+    
     `ssh-keygen`
+  
   - Authorize the master on the worker using ssh.
+    
     `ssh-copy-id <worker-node-ip>`
 
 - Disable swap.
@@ -29,12 +37,13 @@
   Only what is documented under the heading: `Forwarding IPv4 and letting iptables see bridged traffic`
 
 - Install docker and containerd as documented [here](https://docs.docker.com/engine/install/ubuntu/).
+
   - On `Ubuntu 22.04 server`, I had to regenerate containerd configuration as follows;
     
     `containerd config default > ~/config.toml`
-  - Because we are using `systemd` adjust the configuration as documented [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd).
+  - Adjust `config.toml` as documented [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd). Under the heading `Configuring the systemd cgroup driver`
   
-  - Replaced the default config on `/etc/containerd/config.toml`
+  - Replace the config on `/etc/containerd/config.toml` with the new config.
   
     `sudo mv ~/config.toml /etc/containerd/`
   
@@ -48,9 +57,21 @@
 
 ## Steps
 
-1. Set up user on sudoers
-2. Set up the control plane node
-3. Set up the worker node
+1. Obtain the IP addresses for the master and worker nodes, by running the following command on the master and worker nodes.
+    
+   `ip -br address`
+
+2. Adjust the file [cluster-config.json](cluster-config.json) for;
+     - Master node ip, the key `nodes.control_plane.ip`
+     - Worker node ip, the key `nodes.worker.ip`
+
+3. Set up user.
+
+4. Set up the control plane node.
+
+5. Set up the worker node.
+
+6. Test our setup. 
 
 ## Credits
 
