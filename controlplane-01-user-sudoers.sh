@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 cat <<EOF | sudo tee /etc/sudoers.d/$USER
-$USER ALL=(ALL:ALL) NOPASSWD:ALL
+$USER ALL=(ALL) NOPASSWD:ALL
 EOF
 
 # set up vim
