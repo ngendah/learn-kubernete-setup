@@ -61,7 +61,7 @@ count=0
 # check worker node ip address
 for IP in $(ssh -o ConnectTimeout=1 $NODE hostname -I);
 do
-  if [ "$IP" == "$WORKER" ]; then
+  if [ "$IP" == "$NODE" ]; then
     ((count+=1))
   fi
 done
