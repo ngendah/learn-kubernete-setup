@@ -17,5 +17,6 @@ openssl x509 -req -in $DATA_DIR/ca.csr \
 
 sudo mv -v $DATA_DIR/ca.crt $DATA_DIR/ca.key $MASTER_CERT_DIR
 
-sudo chown -v root:root $MASTER_CERT_DIR/ca.key
-sudo chmod -v 600 $MASTER_CERT_DIR/ca*
+# TODO make ca file's owner as root
+# sudo chown -v root:root $MASTER_CERT_DIR/ca.key
+# sudo chmod -v 600 $MASTER_CERT_DIR/ca*
