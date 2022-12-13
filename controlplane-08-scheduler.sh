@@ -70,8 +70,7 @@ do
   else
     sudo chmod -Rv 600 $DIR/kube-scheduler*
   fi
-  if [ $DIR == $SERVICES_DIR ]; then
-    sudo systemctl enable kube-scheduler*
-    sudo systemctl start kube-scheduler*
-  fi
 done
+
+sudo systemctl enable kube-scheduler.service
+sudo systemctl start kube-scheduler.service

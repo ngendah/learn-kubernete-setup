@@ -88,8 +88,7 @@ do
   else
     sudo chmod -Rv 600 $DIR/kube-controller*
   fi
-  if [ $DIR == $SERVICES_DIR ]; then
-    sudo systemctl enable kube-controller*
-    sudo systemctl start kube-controller*
-  fi
 done
+
+sudo systemctl enable kube-controller-manager.service
+sudo systemctl start kube-controller-manager.service

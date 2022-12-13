@@ -4,7 +4,8 @@
 source common.sh
 
 # Binary
-wget --show-progress --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kube-apiserver
+wget --show-progress --https-only --timestamping \
+    https://storage.googleapis.com/kubernetes-release/release/${KUBERNETES_VERSION}/bin/linux/amd64/kube-apiserver
 
 sudo mv -v  kube-apiserver $BIN_DIR/
 
@@ -150,14 +151,13 @@ EOF
 
 for DIR in $MASTER_CONFIG_DIR $MASTER_CERT_DIR $BIN_DIR $SERVICES_DIR;
 do
-  sudo chown -Rv root:root $DIR/*apiserver*
+  sudo chown -Rv --quiet root:root $DIR/*apiserver*
   if [ $DIR == $BIN_DIR ]; then
-    sudo chmod -Rv 500 $DIR/*apiserver*
+    sudo chmod -Rv --quiet 500 $DIR/*apiserver*
   else
-    sudo chmod -Rv 600 $DIR/*apiserver* $DIR/service-*
-  fi
-  if [ $DIR == $SERVICES_DIR ]; then
-    sudo systemctl enable kube-apiserver*
-    sudo systemctl start kube-apiserver*
+    sudo chmod -Rv --quiet 600 $DIR/*apiserver* $DIR/service-*
   fi
 done
+
+sudo systemctl enable kube-apiserver.service
+sudo systemctl start kube-apiserver.service

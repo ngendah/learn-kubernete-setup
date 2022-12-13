@@ -97,6 +97,6 @@ sudo chmod -Rv 600 $KUBE_PROXY_CERT_DIR
 sudo chown -v root:root $SERVICES_DIR/kube-proxy.service
 sudo chmod -v 600 $SERVICES_DIR/kube-proxy.service
 
-sudo systemctl enable kube-proxy*
-sudo systemctl start kube-proxy*
+sudo systemctl enable kube-proxy.service
+sudo systemctl start kube-proxy.service
 EOF

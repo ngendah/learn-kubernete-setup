@@ -88,8 +88,7 @@ do
   else
     sudo chmod -Rv 600 $DIR/etcd*
   fi
-  if [ $DIR == $SERVICES_DIR ]; then
-    sudo systemctl enable etcd*
-    sudo systemctl start etcd*
-  fi
 done
+
+sudo systemctl enable etcd.service
+sudo systemctl start etcd.service

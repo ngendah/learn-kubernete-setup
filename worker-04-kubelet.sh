@@ -134,6 +134,6 @@ sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet-config.yaml
 sudo chown -v root:root $SERVICES_DIR/kubelet.service
 sudo chmod -v 600 $SERVICES_DIR/kubelet.service
 
-sudo systemctl enable kubelet*
-sudo systemctl start kubelet*
+sudo systemctl enable kubelet.service
+sudo systemctl start kubelet.service
 EOF
