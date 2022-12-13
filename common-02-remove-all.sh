@@ -1,32 +1,62 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2086
 source common.sh
-# remove all created files
 
-#kubectl
-sudo rm -vf /usr/local/bin/kubectl
+# stop all services
 
-# TLS certificates and keys
-sudo rm -vf *.cnf *.csr *.crt *.key
-sudo rm -vf /etc/kubernetes/pki/*
+cat<<EOF | ssh -T $NODE
+sudo systemctl enable kube-proxy.service
+sudo systemctl start kube-proxy.service
 
-# kube-configs
-sudo rm -vf *.kubeconfig
-sudo rm -vf /etc/kubernetes/*.kubeconfig
+sudo systemctl disable kubelet.service
+sudo systemctl stop kubelet.service
 
-# etcd
-sudo rm -vf /etc/etcd/*
-sudo rm -vf /etc/systemd/system/etcd.service
+sudo systemctl daemon-reload
+EOF
 
-# api-server
-sudo rm -vf /usr/local/bin/kube-apiserver
-sudo rm -vf /etc/systemd/system/kube-apiserver.service \
-                  /etc/kubernetes/encryption-config.yaml
+sudo systemctl disable kube-apiserver.service
+sudo systemctl stop kube-apiserver.service
 
-# controller-manager
-sudo rm -vf /usr/local/bin/kube-controller-manager
-sudo rm -vf /etc/systemd/system/kube-controller-manager.service
+sudo systemctl disable kube-scheduler.service
+sudo systemctl stop kube-scheduler.service
 
-# scheduler
-sudo rm -vf /usr/local/bin/kube-scheduler
-sudo rm -vf /etc/systemd/system/kube-scheduler.service
+sudo systemctl disable kube-controller-manager.service
+sudo systemctl stop kube-controller-manager.service
+
+sudo systemctl disable etcd.service
+sudo systemctl stop etcd.service
+
+sudo systemctl daemon-reload
+
+# Remove all files
+
+sudo rm -vf $BIN_DIR/kubectl
+sudo rm -vf $BIN_DIR/etcd*
+sudo rm -vf $BIN_DIR/kube-controller-manager
+sudo rm -vf $BIN_DIR/kube-scheduler
+sudo rm -vf $BIN_DIR/kube-apiserver
+sudo rm -vf $SERVICES_DIR/etcd.service
+sudo rm -vf $SERVICES_DIR/kube-apiserver.service
+sudo rm -vf $SERVICES_DIR/kube-controller-manager.service
+sudo rm -vf $SERVICES_DIR/kube-scheduler.service
+
+sudo rm -rvf $DATA
+sudo rm -rvf $MASTER_CERT_DIR
+sudo rm -rvf $MASTER_CONFIG_DIR
+sudo rm -rvf $ETCD_DIR
+sudo rm -rvf $ETCD_DATA_DIR
+
+
+cat<<EOF | ssh -T $NODE
+sudo rm -vf $BIN_DIR/kubectl
+sudo rm -vf $BIN_DIR/kubelet
+sudo rm -vf $BIN_DIR/kube-proxy
+sudo rm -vf $SERVICES_DIR/kubelet.service
+sudo rm -vf $SERVICES_DIR/kube-proxy.service
+
+sudo rm -rvf $KUBELET_CERT_DIR
+sudo rm -rvf $KUBELET_CONFIG_DIR
+sudo rm -rvf $KUBE_PROXY_CERT_DIR
+sudo rm -rvf $KUBE_PROXY_CONFIG_DIR
+EOF
