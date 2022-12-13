@@ -45,11 +45,11 @@ There are alternatives;
   
   - Replace the config on `/etc/containerd/config.toml` with the new config.
   
-    `sudo mv ~/config.toml /etc/containerd/`
-  
-    `sudo chmod 600 /etc/containerd/config.toml`
-  
-    `sudo chown root:root /etc/containerd/config.toml`
+    ```commandline
+      sudo mv ~/config.toml /etc/containerd/
+      sudo chmod 600 /etc/containerd/config.toml
+      sudo chown root:root /etc/containerd/config.toml
+    ```
   
   - Restart `containerd` daemon
     `sudo systemctl restart containerd`
@@ -72,6 +72,16 @@ There are alternatives;
 5. Set up the worker node.
 
 6. Test our setup. 
+
+7. Troubleshooting
+    
+    - On the terminal you can source the file `common.sh` and `printenv` to see all the environment variables used
+      
+      ```commandline
+       source ./common.sh
+       printenv
+      ```
+
 
 ## Credits
 
