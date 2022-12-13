@@ -10,7 +10,7 @@ export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 cat<<EOF | ssh -T $NODE
 echo "Downloading kubelet-$KUBERNETES_VERSION"
 wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kubelet
-sudo mv -v ./kubectl $BIN_DIR
+sudo mv -v ./kubelet $BIN_DIR
 
 sudo chown -v root:root $BIN_DIR/kubelet
 sudo chmod -v 500 $BIN_DIR/kubelet
