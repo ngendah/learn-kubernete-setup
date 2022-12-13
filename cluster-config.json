@@ -1,5 +1,5 @@
 {
-  "script_data_dir": "./data/",
+  "script_data_dir": "data/",
   "version": "v1.24.3",
   "cluster_name": "kubernetes",
   "service_cidr": "10.96.0.0/24",
