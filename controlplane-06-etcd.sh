@@ -41,9 +41,10 @@ openssl x509 -req -in $DATA_DIR/etcd-server.csr \
 
 sudo mv -v $DATA_DIR/etcd-server.key \
         $DATA_DIR/etcd-server.crt \
-        $ETCD_DIR/
-sudo ln -vs $MASTER_CERT_DIR/ca.crt \
-            $ETCD_DIR/ca.crt
+        $MASTER_CERT_DIR/
+sudo ln -vs $MASTER_CERT_DIR/ca.crt $ETCD_DIR/ca.crt
+sudo ln -vs $MASTER_CERT_DIR/etcd-server.key $ETCD_DIR/etcd-server.key
+sudo ln -vs $MASTER_CERT_DIR/etcd-server.crt $ETCD_DIR/etcd-server.crt
 
 # service
 cat <<EOF | sudo tee /etc/systemd/system/etcd.service
