@@ -10,7 +10,7 @@ export KUBERNETES_VERSION=$(jq -r '.version' cluster-config.json)
 export API_SERVICE=$(echo "$SERVICE_CIDR" | sed 's/0\/24/1/g')
 export CLUSTER_DNS=$(echo "$SERVICE_CIDR" | sed 's/0\/24/10/g')
 
-export DATA_DIR=$(jq -r '.script_data_dir' cluster-config.json)
+export DATA_DIR=$(pwd)/$(jq -r '.script_data_dir' cluster-config.json)
 export BIN_DIR=$(jq -r '.nodes.paths.bin' cluster-config.json)
 export SERVICES_DIR=$(jq -r '.nodes.paths.services' cluster-config.json)
 
@@ -42,3 +42,31 @@ export ETCD_DATA_DIR=$(jq -r '.nodes.control_plane.etcd.paths.data_dir' cluster-
 
 export INTERNAL_IP=$MASTER_1
 export NODE=$WORKER_1
+
+# check control node ip address
+count=0
+for IP in $(hostname -I);
+do
+  if [ $IP == $MASTER_1 ]; then
+    ((count+=1))
+  fi
+done
+
+if [ $count -eq 0 ]; then
+  echo "control node IP has not been set"
+  exit 1
+fi
+
+count=0
+# check worker node ip address
+for IP in $(ssh -o ConnectTimeout=1 $NODE hostname -I);
+do
+  if [ $IP == $WORKER ]; then
+    ((count+=1))
+  fi
+done
+
+if [ $count -eq 0 ]; then
+  echo "worker node IP has not been set"
+  exit 1
+fi
