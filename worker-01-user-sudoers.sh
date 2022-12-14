@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-sudo apt-get install -y vim jq
+source common.sh
 
-cat <<EOF | sudo tee /etc/sudoers.d/$USER
-$USER ALL=(ALL) NOPASSWD:ALL
+cat<<EOF | ssh -T $NODE
+sudo apt-get update
+sudo apt-get install -y vim jq
+sudo echo "\$USER ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/\$USER
 EOF
