@@ -58,8 +58,8 @@ if [ $count -eq 0 ]; then
   exit 1
 fi
 
-count=0
 # check worker node ip address
+count=0
 for IP in $(ssh -o ConnectTimeout=1 $NODE hostname -I);
 do
   if [ "$IP" == "$NODE" ]; then
@@ -69,5 +69,11 @@ done
 
 if [ $count -eq 0 ]; then
   echo "worker node IP has not been set"
+  exit 1
+fi
+
+# check if swap is on
+if [ "$(ssh -o ConnectTimeout=1 $NODE sudo swapon -s)" != "" ]; then
+  echo "disable swap on worker node"
   exit 1
 fi
