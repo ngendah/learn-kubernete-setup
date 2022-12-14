@@ -64,13 +64,12 @@ ExecStart=$BIN_DIR/etcd \\
   --peer-trusted-ca-file=$ETCD_DIR/ca.crt \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
-  --initial-advertise-peer-urls=https://${INTERNAL_IP}:2380 \\
-  --listen-peer-urls=https://${INTERNAL_IP}:2380 \\
-  --listen-client-urls=https://${INTERNAL_IP}:2379,https://127.0.0.1:2379 \\
-  --advertise-client-urls=https://${INTERNAL_IP}:2379 \\
-  --initial-cluster-token=etcd-cluster-0 \\
-  --initial-cluster=master-1=https://${MASTER_1}:2380,\\
-  --initial-cluster-state new
+  --listen-client-urls=https://$MASTER_1:2379,https://127.0.0.1:2379 \\
+  # --initial-advertise-peer-urls=https://$MASTER_1:2380 \\
+  # --listen-peer-urls=https://${INTERNAL_IP}:2380 \\
+  # --initial-cluster-token=etcd-cluster-0 \\
+  # --initial-cluster=master-1=https://${MASTER_1}:2380,\\
+  # --initial-cluster-state new
 Restart=on-failure
 RestartSec=5
 
