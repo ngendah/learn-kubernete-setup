@@ -2,8 +2,9 @@
 
 why?
 
-1. provide a simple and clear way to separately install each of the kubernetes components from scratch on a bare local VM.
-2. provide standalone scripts that can easily be read and adjusted.
+1. provide a simple and clear method to separately install each of the kubernetes components from scratch on a bare local VM.
+2. provide standalone scripts that can easily be read and adjusted; good to play with.
+3. want to learn what [kubeadm tool](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/) and other tools are 'doing' on the background.
 
 There are alternatives;
 
@@ -14,8 +15,8 @@ There are alternatives;
 - Some knowledge of Kubernetes and its components.
   - Kubernetes concepts documentation is available [here.](https://kubernetes.io/docs/concepts/overview/components/)
 
-- 2 VM servers installed with `Ubuntu 22.04 server` with the minimal installation.
-  - one server shall be the master and the other a worker.
+- 2 VM servers installed with `Ubuntu 22.04 server` with its minimal installation.
+  - one server should be the master and the other a worker.
 
 - The same user configured on the master and worker node.
   - This requirement simplifies ssh logins and command execution. 
@@ -28,6 +29,10 @@ There are alternatives;
   - Authorize the master on the worker using ssh.
     
     `ssh-copy-id <worker-node-ip>`
+  
+  - Check you can ssh into the worker node
+
+    `ssh <worker-node-ip>`
 
 - Disable swap.
   - Run `swapoff -a`, to immediately disable swap.
