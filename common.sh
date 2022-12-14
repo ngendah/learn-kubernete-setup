@@ -68,7 +68,7 @@ do
 done
 
 if [ $count -eq 0 ]; then
-  echo "worker node IP has not been set"
+  echo "worker node is unreachable on IP: $NODE, using the command: ssh $NODE"
   exit 1
 fi
 
