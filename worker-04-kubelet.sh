@@ -4,12 +4,14 @@
 source common.sh
 
 # shellcheck disable=SC2155
-export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
+export NODE_HOSTNAME=$(ssh $NODE hostname -s)
 
 # Binary
 cat<<EOF | ssh -T $NODE
 echo "Downloading kubelet-$KUBERNETES_VERSION"
-wget -q --https-only --timestamping https://storage.googleapis.com/kubernetes-release/release/KUBERNETES_VERSION/bin/linux/amd64/kubelet
+wget -q --https-only --timestamping \
+    https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubelet
+
 sudo mv -v ./kubelet $BIN_DIR
 
 sudo chown -v root:root $BIN_DIR/kubelet
@@ -58,22 +60,22 @@ EOF
 
 # Configuration
 cat<<EOF | ssh -T $NODE
-kubectl config set-cluster $CLUSTER_NAME \\
+sudo kubectl config set-cluster $CLUSTER_NAME \\
     --certificate-authority=$WORKER_CERT_DIR/ca.crt \\
     --server=https://${MASTER_1}:6443 \\
     --kubeconfig=kubelet.kubeconfig
 
-kubectl config set-credentials system:node:$NODE_HOSTNAME \\
-    --client-certificate=$KUBELET_CERT_DIR/$NODE_HOSTNAME.crt \\
-    --client-key=$KUBELET_CERT_DIR/$NODE_HOSTNAME.key \\
+sudo kubectl config set-credentials system:node:$NODE_HOSTNAME \\
+    --client-certificate=$KUBELET_CERT_DIR/kubelet.crt \\
+    --client-key=$KUBELET_CERT_DIR/kubelet.key \\
     --kubeconfig=kubelet.kubeconfig
 
-kubectl config set-context default \\
+sudo kubectl config set-context default \\
     --cluster=$CLUSTER_NAME \\
     --user=system:node:$NODE_HOSTNAME \\
     --kubeconfig=kubelet.kubeconfig
 
-kubectl config use-context default --kubeconfig=kubelet.kubeconfig
+sudo kubectl config use-context default --kubeconfig=kubelet.kubeconfig
 
 sudo mv -v ~/kubelet.kubeconfig $KUBELET_CONFIG_DIR
 sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet.kubeconfig
@@ -97,8 +99,8 @@ clusterDNS:
   - ${CLUSTER_DNS}
 resolvConf: /run/systemd/resolve/resolv.conf
 runtimeRequestTimeout: "15m"
-tlsCertFile: $WORKER_CERT_DIR/kubelet.crt
-tlsPrivateKeyFile: $WORKER_CERT_DIR/kubelet.key
+tlsCertFile: $KUBELET_CERT_DIR/kubelet.crt
+tlsPrivateKeyFile: $KUBELET_CERT_DIR/kubelet.key
 registerNode: true
 EOF
 
@@ -113,7 +115,7 @@ Requires=containerd.service
 ExecStart=$BIN_DIR/kubelet \\
   --config=$KUBELET_CONFIG_DIR/kubelet-config.yaml \\
   --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \\
-  --kubeconfig=KUBELET_CONFIG_DIR/kubelet.kubeconfig \\
+  --kubeconfig=$KUBELET_CONFIG_DIR/kubelet.kubeconfig \\
   --v=2
 Restart=on-failure
 RestartSec=5
