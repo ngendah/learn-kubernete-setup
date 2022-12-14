@@ -65,11 +65,7 @@ ExecStart=$BIN_DIR/etcd \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
   --listen-client-urls=https://$MASTER_1:2379,https://127.0.0.1:2379 \\
-  # --initial-advertise-peer-urls=https://$MASTER_1:2380 \\
-  # --listen-peer-urls=https://${INTERNAL_IP}:2380 \\
-  # --initial-cluster-token=etcd-cluster-0 \\
-  # --initial-cluster=master-1=https://${MASTER_1}:2380,\\
-  # --initial-cluster-state new
+  --advertise-client-urls=https://$MASTER_1:2379,https://127.0.0.1:2379
 Restart=on-failure
 RestartSec=5
 
