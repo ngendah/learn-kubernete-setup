@@ -15,10 +15,10 @@ There are alternatives;
 - Some knowledge of Kubernetes and its components.
   - Kubernetes concepts documentation is available [here.](https://kubernetes.io/docs/concepts/overview/components/)
 
-- 2 VM servers installed with `Ubuntu 22.04 server` with its minimal installation.
-  - one server should be the master and the other a worker.
+- 2 x86_64 VM servers installed with minimized `Ubuntu 22.04 server`.
+  - one server will be the control plane(master) and the other a worker.
 
-- The same user configured on the master and worker node.
+- The same login user configured on the master and worker node.
   - This requirement simplifies ssh logins and command execution. 
 
 - The master node user can ssh into the worker node.
