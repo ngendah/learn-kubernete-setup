@@ -44,13 +44,10 @@ ca_reinstall() {
 
 case $1 in
 "remove")
-  ca_remove
   ;;
 "generate")
-  ca_generate
   ;;
 "install")
-  ca_install
   ;;
 "reinstall")
   ca_reinstall

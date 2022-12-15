@@ -90,7 +90,7 @@ etcd_remove() {
 etcd_remove_all() {
   etcd_remove
   rm -fr $DATA_DIR/etcd-server.key $DATA_DIR/etcd-server.crt $DATA_DIR/etcd-server.csr \
-    $DATA_DIR/etcd.service $DATA_DIR/${ETCD_DOWNLOAD_FILE:?}
+    $DATA_DIR/etcd.service $DATA_DIR/*etcd.cnf $DATA_DIR/${ETCD_DOWNLOAD_FILE:?}
 }
 
 etcd_start() {
