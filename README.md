@@ -3,7 +3,7 @@
 why?
 
 1. provide a simple and clear method to separately install each of the kubernetes components from scratch on a bare local VM.
-2. provide standalone scripts that can easily be read and adjusted; good to play with.
+2. provide standalone scripts that can easily be read and adjusted; good to play with and setting up labs.
 3. want to learn what [kubeadm tool](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/) and other tools are 'doing' on the background.
 
 There are alternatives;
