@@ -72,7 +72,13 @@ if [ $count -eq 0 ]; then
   exit 1
 fi
 
-# check if swap is on
+# check node user sudo permission doesn't require password
+if [ "$(ssh $NODE find /etc/sudoers.d/ -name $USER -type f)" == "" ]; then
+  echo "enable node user $USER sudoers, refer to worker-01-user-sudoers.sh script"
+  exit 1
+fi
+
+# check swap is off
 if [ "$(ssh -o ConnectTimeout=1 $NODE sudo swapon -s)" != "" ]; then
   echo "disable swap on worker node"
   exit 1
