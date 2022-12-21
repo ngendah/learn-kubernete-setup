@@ -13,6 +13,7 @@ export CLUSTER_DNS=$(echo "$SERVICE_CIDR" | sed 's/0\/24/10/g')
 export DATA_DIR=$(pwd)/$(jq -r '.script_data_dir' cluster-config.json)
 export BIN_DIR=$(jq -r '.nodes.paths.bin' cluster-config.json)
 export SERVICES_DIR=$(jq -r '.nodes.paths.services' cluster-config.json)
+export CA_FILE_NAME="ca"
 
 export MASTER_HOME_DIR=$(jq -r '.nodes.control_plane.kubernetes.paths.config' cluster-config.json)
 export MASTER_CERT_DIR=$(jq -r '.nodes.control_plane.kubernetes.paths.certificates' cluster-config.json)
@@ -105,4 +106,11 @@ worker_check_dirs_and_create() {
   ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubernetes.paths[]" cluster-config.json)
   ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubelet.paths[]" cluster-config.json)
   ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kube_proxy.paths[]" cluster-config.json)
+}
+
+master_ca_exists() {
+  if [ ! -f $MASTER_CERT_DIR/$CA_FILE_NAME.key ] || [ ! -f $MASTER_CERT_DIR/$CA_FILE_NAME.crt ]; then
+    echo "Certificate authority has not been created, run CA-certificate.sh script first"
+    exit 1
+  fi
 }

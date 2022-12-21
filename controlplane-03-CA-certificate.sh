@@ -6,19 +6,19 @@ source common.sh
 ca_generate() {
   master_check_dirs_and_create
 
-  openssl genrsa -out $DATA_DIR/ca.key 2048
-  openssl req -new -key $DATA_DIR/ca.key \
+  openssl genrsa -out $DATA_DIR/$CA_FILE_NAME.key 2048
+  openssl req -new -key $DATA_DIR/$CA_FILE_NAME.key \
     -subj "/CN=KUBERNETES-CA/O=Kubernetes" \
-    -out $DATA_DIR/ca.csr
-  openssl x509 -req -in $DATA_DIR/ca.csr \
-    -signkey $DATA_DIR/ca.key \
+    -out $DATA_DIR/$CA_FILE_NAME.csr
+  openssl x509 -req -in $DATA_DIR/$CA_FILE_NAME.csr \
+    -signkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/ca.crt \
+    -out $DATA_DIR/$CA_FILE_NAME.crt \
     -days 1000
 }
 
 ca_install() {
-  sudo cp -fv $DATA_DIR/ca.crt $DATA_DIR/ca.key $MASTER_CERT_DIR
+  sudo cp -fv $DATA_DIR/$CA_FILE_NAME.crt $DATA_DIR/$CA_FILE_NAME.key $MASTER_CERT_DIR
 
   # TODO make ca file's owner as root
   sudo chown -v $USER:root $MASTER_CERT_DIR/ca*
@@ -26,16 +26,16 @@ ca_install() {
 }
 
 ca_remove() {
-  rm -rf $MASTER_CERT_DIR/ca.crt $MASTER_CERT_DIR/ca.key
+  rm -rf $MASTER_CERT_DIR/$CA_FILE_NAME.crt $MASTER_CERT_DIR/$CA_FILE_NAME.key
 }
 
 ca_remove_all() {
   ca_remove
-  rm -fv $DATA_DIR/ca.crt $DATA_DIR/ca.key $DATA_DIR/ca.csr
+  rm -fv $DATA_DIR/$CA_FILE_NAME.crt $DATA_DIR/$CA_FILE_NAME.key $DATA_DIR/$CA_FILE_NAME.csr
 }
 
 ca_reinstall() {
-  if [ -f "$DATA_DIR/ca.crt" ] && [ -f "$DATA_DIR/ca.key" ]; then
+  if [ -f "$DATA_DIR/$CA_FILE_NAME.crt" ] && [ -f "$DATA_DIR/$CA_FILE_NAME.key" ]; then
     ca_install
   else
     ca_remove

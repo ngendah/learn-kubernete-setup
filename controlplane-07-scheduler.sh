@@ -14,6 +14,7 @@ scheduler_download() {
 
 scheduler_generate() {
   master_check_dirs_and_create
+  master_ca_exists
   scheduler_download
 
   openssl genrsa -out $DATA_DIR/kube-scheduler.key 2048
@@ -21,13 +22,13 @@ scheduler_generate() {
     -subj "/CN=system:kube-scheduler/O=system:kube-scheduler" \
     -out $DATA_DIR/kube-scheduler.csr
   openssl x509 -req -in $DATA_DIR/kube-scheduler.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-scheduler.crt -days 1000
 
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
 

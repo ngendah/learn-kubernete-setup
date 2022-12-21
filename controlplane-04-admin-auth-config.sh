@@ -5,21 +5,22 @@ source common.sh
 
 admin_generate() {
   master_check_dirs_and_create
+  master_ca_exists
 
   openssl genrsa -out $DATA_DIR/admin.key 2048
   openssl req -new -key $DATA_DIR/admin.key \
     -subj "/CN=admin/O=system:masters" \
     -out $DATA_DIR/admin.csr
   openssl x509 -req -in $DATA_DIR/admin.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/admin.crt \
     -days 1000
 
   # Kube-config
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
     --embed-certs=true \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=$DATA_DIR/admin.kubeconfig

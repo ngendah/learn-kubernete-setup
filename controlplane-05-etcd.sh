@@ -14,6 +14,7 @@ etcd_download() {
 
 etcd_generate() {
   master_check_dirs_and_create
+  master_ca_exists
   etcd_download
 
   cat >$DATA_DIR/openssl-etcd.cnf <<EOF
@@ -36,8 +37,8 @@ EOF
     -out $DATA_DIR/etcd-server.csr \
     -config $DATA_DIR/openssl-etcd.cnf
   openssl x509 -req -in $DATA_DIR/etcd-server.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/etcd-server.crt \
     -extensions v3_req \
@@ -56,8 +57,8 @@ ExecStart=$BIN_DIR/etcd \\
   --key-file=$ETCD_DIR/etcd-server.key \\
   --peer-cert-file=$ETCD_DIR/etcd-server.crt \\
   --peer-key-file=$ETCD_DIR/etcd-server.key \\
-  --trusted-ca-file=$ETCD_DIR/ca.crt \\
-  --peer-trusted-ca-file=$ETCD_DIR/ca.crt \\
+  --trusted-ca-file=$ETCD_DIR/$CA_FILE_NAME.crt \\
+  --peer-trusted-ca-file=$ETCD_DIR/$CA_FILE_NAME.crt \\
   --peer-client-cert-auth \\
   --client-cert-auth \\
   --listen-client-urls=https://$MASTER_1:2379,https://127.0.0.1:2379 \\
@@ -75,7 +76,7 @@ etcd_install() {
   sudo cp -v $DATA_DIR/etcd-server.key $DATA_DIR/etcd-server.crt $MASTER_CERT_DIR/
   sudo cp -v $DATA_DIR/etcd.service $SERVICES_DIR/etcd.service
 
-  sudo ln -vs $MASTER_CERT_DIR/ca.crt $ETCD_DIR/ca.crt
+  sudo ln -vs $MASTER_CERT_DIR/$CA_FILE_NAME.crt $ETCD_DIR/$CA_FILE_NAME.crt
   sudo ln -vs $MASTER_CERT_DIR/etcd-server.key $ETCD_DIR/etcd-server.key
   sudo ln -vs $MASTER_CERT_DIR/etcd-server.crt $ETCD_DIR/etcd-server.crt
 

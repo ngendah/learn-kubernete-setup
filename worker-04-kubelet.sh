@@ -7,6 +7,8 @@ source common.sh
 export NODE_HOSTNAME=$(ssh $NODE hostname -s)
 
 kubelet_generate() {
+  master_ca_exists
+
   cat <<EOF | tee $DATA_DIR/openssl-worker-kubelet.cnf
 [req]
 req_extensions = v3_req
@@ -27,8 +29,8 @@ EOF
     -out $DATA_DIR/kubelet.csr \
     -config $DATA_DIR/openssl-worker-kubelet.cnf
   openssl x509 -req -in $DATA_DIR/kubelet.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kubelet.crt \
     -extensions v3_req \
@@ -43,7 +45,7 @@ authentication:
   webhook:
     enabled: true
   x509:
-    clientCAFile: $WORKER_CERT_DIR/ca.crt
+    clientCAFile: $WORKER_CERT_DIR/$CA_FILE_NAME.crt
 authorization:
   mode: Webhook
 clusterDomain: cluster.local
@@ -89,10 +91,10 @@ sudo chown -v root:root $BIN_DIR/kubelet
 sudo chmod -v 500 $BIN_DIR/kubelet
 EOF
 
-  scp $DATA_DIR/kubelet.key $DATA_DIR/kubelet.crt $MASTER_CERT_DIR/ca.crt $NODE:~
+  scp $DATA_DIR/kubelet.key $DATA_DIR/kubelet.crt $MASTER_CERT_DIR/$CA_FILE_NAME.crt $NODE:~
 
   cat <<EOF | ssh -T $NODE
-sudo mv -v ~/ca.crt $WORKER_CERT_DIR/
+sudo mv -v ~/$CA_FILE_NAME.crt $WORKER_CERT_DIR/
 sudo mv -v ~/kubelet.key $KUBELET_CERT_DIR/kubelet.key
 sudo mv -v ~/kubelet.crt $KUBELET_CERT_DIR/kubelet.crt
 
@@ -102,7 +104,7 @@ EOF
 
   cat <<EOF | ssh -T $NODE
 sudo kubectl config set-cluster $CLUSTER_NAME \\
-    --certificate-authority=$WORKER_CERT_DIR/ca.crt \\
+    --certificate-authority=$WORKER_CERT_DIR/$CA_FILE_NAME.crt \\
     --server=https://${MASTER_1}:6443 \\
     --kubeconfig=kubelet.kubeconfig
 
@@ -138,7 +140,7 @@ EOF
 
 kubelet_remove() {
   cat <<EOF | ssh -T $NODE
-# sudo rm -fv $WORKER_CERT_DIR/ca.crt
+# sudo rm -fv $WORKER_CERT_DIR/$CA_FILE_NAME.crt
 sudo rm -fv $BIN_DIR/kubelet
 sudo rm -fv $KUBELET_CERT_DIR/kubelet.key
 sudo rm -fv $KUBELET_CERT_DIR/kubelet.crt

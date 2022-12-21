@@ -7,13 +7,15 @@ source common.sh
 export NODE_HOSTNAME=$(ssh $NODE sudo hostname -s)
 
 kube_proxy_generate() {
+  master_ca_exists
+
   openssl genrsa -out $DATA_DIR/kube-proxy.key 2048
   openssl req -new -key $DATA_DIR/kube-proxy.key \
     -subj "/CN=system:kube-proxy/O=system:node-proxier" \
     -out $DATA_DIR/kube-proxy.csr
   openssl x509 -req -in $DATA_DIR/kube-proxy.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-proxy.crt \
     -days 1000
@@ -53,7 +55,7 @@ sudo chown -v root:root $BIN_DIR/kube-proxy
 sudo chmod -v 500 $BIN_DIR/kube-proxy
 EOF
 
-  scp $MASTER_CERT_DIR/ca.crt $DATA_DIR/kube-proxy.key \
+  scp $MASTER_CERT_DIR/$CA_FILE_NAME.crt $DATA_DIR/kube-proxy.key \
     $DATA_DIR/kube-proxy.crt \
     $DATA_DIR/kube-proxy-config.yaml \
     $DATA_DIR/kube-proxy.service \
@@ -61,7 +63,7 @@ EOF
 
   cat <<EOF | ssh -T $NODE
 kubectl config set-cluster $CLUSTER_NAME \
-    --certificate-authority=$WORKER_CERT_DIR/ca.crt \
+    --certificate-authority=$WORKER_CERT_DIR/$CA_FILE_NAME.crt \
     --server=https://$MASTER_1:6443 \
     --kubeconfig=kube-proxy.kubeconfig
 
@@ -84,7 +86,7 @@ sudo chmod -Rv 600 $KUBE_PROXY_KUBE_PROXY_CONFIG_DIR
 EOF
 
   cat <<EOF | ssh -T $NODE
-sudo mv -v ~/ca.crt $WORKER_CERT_DIR
+sudo mv -v ~/$CA_FILE_NAME.crt $WORKER_CERT_DIR
 
 sudo mv -v ~/kube-proxy.key ~/kube-proxy.crt $KUBE_PROXY_CERT_DIR
 sudo mv -v ~/kube-proxy-config.yaml $KUBE_PROXY_CONFIG_DIR
@@ -99,7 +101,7 @@ EOF
 
 kube_proxy_remove() {
   cat <<EOF | ssh -T $NODE
-# sudo rm -fv $WORKER_CERT_DIR/ca.crt
+# sudo rm -fv $WORKER_CERT_DIR/$CA_FILE_NAME.crt
 sudo rm -fv $BIN_DIR/kube-proxy
 sudo rm -fv $KUBE_PROXY_CONFIG_DIR/kube-proxy.kubeconfig
 sudo rm -fv $KUBE_PROXY_CERT_DIR/kube-proxy.key

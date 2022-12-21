@@ -14,6 +14,7 @@ cm_download() {
 
 cm_generate() {
   master_check_dirs_and_create
+  master_ca_exists
   cm_download
 
   openssl genrsa -out $DATA_DIR/kube-controller-manager.key 2048
@@ -21,13 +22,13 @@ cm_generate() {
     -subj "/CN=system:kube-controller-manager/O=system:kube-controller-manager" \
     -out $DATA_DIR/kube-controller-manager.csr
   openssl x509 -req -in $DATA_DIR/kube-controller-manager.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-controller-manager.crt -days 1000
 
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/ca.crt \
+    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
 
@@ -55,17 +56,17 @@ ExecStart=$BIN_DIR/kube-controller-manager \\
   --authentication-kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
   --authorization-kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
   --bind-address=127.0.0.1 \\
-  --client-ca-file=$MASTER_CERT_DIR/ca.crt \\
+  --client-ca-file=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
   --cluster-cidr=${POD_CIDR} \\
   --cluster-name=${CLUSTER_NAME} \\
-  --cluster-signing-cert-file=$MASTER_CERT_DIR/ca.crt \\
-  --cluster-signing-key-file=$MASTER_CERT_DIR/ca.key \\
+  --cluster-signing-cert-file=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
+  --cluster-signing-key-file=$MASTER_CERT_DIR/$CA_FILE_NAME.key \\
   --controllers=*,bootstrapsigner,tokencleaner \\
   --kubeconfig=$MASTER_CONFIG_DIR/kube-controller-manager.kubeconfig \\
   --leader-elect=true \\
   --node-cidr-mask-size=24 \\
-  --requestheader-client-ca-file=$MASTER_CERT_DIR/ca.crt \\
-  --root-ca-file=$MASTER_CERT_DIR/ca.crt \\
+  --requestheader-client-ca-file=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
+  --root-ca-file=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
   --service-account-private-key-file=$MASTER_CERT_DIR/service-account.key \\
   --service-cluster-ip-range=${SERVICE_CIDR} \\
   --use-service-account-credentials=true \\

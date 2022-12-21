@@ -14,6 +14,7 @@ apiserver_download() {
 
 apiserver_generate() {
   master_check_dirs_and_create
+  master_ca_exists
   apiserver_download
 
   cat >$DATA_DIR/openssl-apiserver.cnf <<EOF
@@ -43,8 +44,8 @@ EOF
     -config $DATA_DIR/openssl-apiserver.cnf \
     -out $DATA_DIR/kube-apiserver.csr
   openssl x509 -req -in $DATA_DIR/kube-apiserver.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-apiserver.crt \
     -extensions v3_req \
@@ -55,8 +56,8 @@ EOF
     -subj "/CN=service-accounts/O=Kubernetes" \
     -out $DATA_DIR/service-account.csr
   openssl x509 -req -in $DATA_DIR/service-account.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/service-account.crt \
     -days 1000
@@ -78,8 +79,8 @@ EOF
     -out $DATA_DIR/apiserver-kubelet-client.csr \
     -config $DATA_DIR/openssl-kubelet.cnf
   openssl x509 -req -in $DATA_DIR/apiserver-kubelet-client.csr \
-    -CA $MASTER_CERT_DIR/ca.crt \
-    -CAkey $MASTER_CERT_DIR/ca.key \
+    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/apiserver-kubelet-client.crt \
     -extensions v3_req \
@@ -117,16 +118,16 @@ ExecStart=$BIN_DIR/kube-apiserver \\
   --audit-log-path=$MASTER_AUDIT_LOG_DIR/audit.log \\
   --authorization-mode=Node,RBAC \\
   --bind-address=0.0.0.0 \\
-  --client-ca-file=$MASTER_CERT_DIR/ca.crt \\
+  --client-ca-file=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
   --enable-admission-plugins=NodeRestriction,ServiceAccount \\
   --enable-bootstrap-token-auth=true \\
-  --etcd-cafile=$MASTER_CERT_DIR/ca.crt \\
+  --etcd-cafile=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
   --etcd-certfile=$MASTER_CERT_DIR/etcd-server.crt \\
   --etcd-keyfile=$MASTER_CERT_DIR/etcd-server.key \\
   --etcd-servers=https://${MASTER_1}:2379 \\
   --event-ttl=1h \\
   --encryption-provider-config=$MASTER_CONFIG_DIR/encryption-config.yaml \\
-  --kubelet-certificate-authority=$MASTER_CERT_DIR/ca.crt \\
+  --kubelet-certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \\
   --kubelet-client-certificate=$MASTER_CERT_DIR/apiserver-kubelet-client.crt \\
   --kubelet-client-key=$MASTER_CERT_DIR/apiserver-kubelet-client.key \\
   --runtime-config=api/all=true \\
