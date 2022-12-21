@@ -86,6 +86,8 @@ There are alternatives;
        source ./common.sh
        printenv
       ```
+      
+    - print trace by adding to the top of the script the command `set -x`
 
     - `Journalctl` with the service unit name
 
