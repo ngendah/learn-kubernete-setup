@@ -41,7 +41,7 @@ There are alternatives;
 - Bridge networking is enabled as documented [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic).
   Only what is documented under the heading: `Forwarding IPv4 and letting iptables see bridged traffic`
 
-- Install docker and containerd as documented [here](https://docs.docker.com/engine/install/ubuntu/).
+- On the worker node install docker and containerd as documented [here](https://docs.docker.com/engine/install/ubuntu/).
 
   - On `Ubuntu 22.04 server`, I had to regenerate containerd configuration as follows;
     
