@@ -146,7 +146,7 @@ EOF
 }
 
 apiserver_install() {
-  sudo cp -v kube-apiserver $BIN_DIR/
+  sudo cp -v $DATA_DIR/kube-apiserver $BIN_DIR/
   sudo cp -v $DATA_DIR/kube-apiserver.key \
     $DATA_DIR/kube-apiserver.crt \
     $DATA_DIR/service-account.key \
@@ -191,9 +191,9 @@ apiserver_restart() {
 }
 
 apiserver_reinstall() {
-  if [ -f $DATA_DIR/kube-apiserver ] && [ -f $DATA_DIR/kube-apiserver.key ] &&
-    [ -f $DATA_DIR/kube-apiserver.crt ] && [ -f $DATA_DIR/service-account.key ] \
-    [ -f $DATA_DIR/service-account.crt ] && [ -f $DATA_DIR/apiserver-kubelet-client.key ] &&
+  if [ -f $DATA_DIR/kube-apiserver ] && [ -f $DATA_DIR/kube-apiserver.key ] && \
+    [ -f $DATA_DIR/kube-apiserver.crt ] && [ -f $DATA_DIR/service-account.key ] && \
+    [ -f $DATA_DIR/service-account.crt ] && [ -f $DATA_DIR/apiserver-kubelet-client.key ] && \
     [ -f $DATA_DIR/apiserver-kubelet-client.crt ] && [ -f $DATA_DIR/kube-apiserver.service ] ; then
     apiserver_remove
     apiserver_install
