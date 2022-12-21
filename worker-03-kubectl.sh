@@ -2,7 +2,7 @@
 
 source common.sh
 
-scp /usr/local/bin/kubectl $NODE:~
+scp $DATA_DIR/kubectl $NODE:~
 
 cat<<EOF | ssh -T $NODE
 sudo mv -v ./kubectl $BIN_DIR
