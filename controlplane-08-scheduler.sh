@@ -62,7 +62,7 @@ EOF
 }
 
 scheduler_install() {
-  sudo cp -v kube-scheduler $BIN_DIR/
+  sudo cp -v $DATA_DIR/kube-scheduler $BIN_DIR/
   sudo cp -v $DATA_DIR/kube-scheduler.key $DATA_DIR/kube-scheduler.crt $MASTER_CERT_DIR
   sudo cp -v $DATA_DIR/kube-scheduler.kubeconfig $MASTER_CONFIG_DIR
   sudo cp -v $DATA_DIR/kube-scheduler.service $SERVICES_DIR
@@ -99,7 +99,7 @@ scheduler_restart() {
 }
 
 scheduler_reinstall() {
-  if [ -f $DATA_DIR/kube-scheduler.key ] && [ -f $DATA_DIR/kube-scheduler.crt ] &&
+  if [ -f $DATA_DIR/kube-scheduler.key ] && [ -f $DATA_DIR/kube-scheduler.crt ] && \
     [ -f $DATA_DIR/kube-scheduler.kubeconfig ] && [ -f $DATA_DIR/kube-scheduler.service ]; then
     scheduler_remove
     scheduler_install
