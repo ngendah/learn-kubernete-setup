@@ -3,6 +3,8 @@
 # shellcheck disable=SC2086
 source common.sh
 
+ETCD_DOWNLOAD_FILE="etcd-$ETCD_VERSION-linux-amd64"
+
 etcd_download() {
   if [ ! -f "$DATA_DIR/$ETCD_DOWNLOAD_FILE" ]; then
     wget -q --show-progress --https-only --timestamping \

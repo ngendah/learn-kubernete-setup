@@ -38,7 +38,6 @@ export KUBE_PROXY_CONFIG_DIR=$KUBE_PROXY_HOME_DIR
 
 export ETCD_NAME=$(hostname -s)
 export ETCD_VERSION=$(jq -r '.nodes.control_plane.etcd.version' cluster-config.json)
-export ETCD_DOWNLOAD_FILE="etcd-$ETCD_VERSION-linux-amd64"
 export ETCD_DIR=$(jq -r '.nodes.control_plane.etcd.paths.config' cluster-config.json)
 export ETCD_DATA_DIR=$(jq -r '.nodes.control_plane.etcd.paths.data_dir' cluster-config.json)
 
