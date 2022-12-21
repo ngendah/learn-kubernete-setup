@@ -13,6 +13,7 @@ apiserver_download() {
 }
 
 apiserver_generate() {
+  master_check_dirs_and_create
   apiserver_download
 
   cat >$DATA_DIR/openssl-apiserver.cnf <<EOF

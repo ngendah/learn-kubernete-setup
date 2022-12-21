@@ -46,10 +46,9 @@ export NODE=$WORKER_1
 
 # check control node ip address
 count=0
-for IP in $(hostname -I);
-do
+for IP in $(hostname -I); do
   if [ "$IP" == "$MASTER_1" ]; then
-    ((count+=1))
+    ((count += 1))
   fi
 done
 
@@ -60,10 +59,9 @@ fi
 
 # check worker node ip address
 count=0
-for IP in $(ssh -o ConnectTimeout=1 $NODE hostname -I);
-do
+for IP in $(ssh -o ConnectTimeout=1 $NODE hostname -I); do
   if [ "$IP" == "$NODE" ]; then
-    ((count+=1))
+    ((count += 1))
   fi
 done
 
@@ -83,3 +81,28 @@ if [ "$(ssh -o ConnectTimeout=1 $NODE sudo swapon -s)" != "" ]; then
   echo "disable swap on worker node"
   exit 1
 fi
+
+master_check_dirs_and_create() {
+  DIR=$(jq ".script_data_dir" cluster-config.json)
+  if [ ! -f $DIR ]; then
+    mkdir -p $DIR
+  fi
+  DIRS=$(jq ".nodes.control_plane.kubernetes.paths[]" cluster-config.json)
+  for DIR in $DIRS; do
+    if [ ! -f $DIR ]; then
+      sudo mkdir -vp $DIR
+    fi
+  done
+  DIRS=$(jq ".nodes.control_plane.etcd.paths[]" cluster-config.json)
+  for DIR in $DIRS; do
+    if [ ! -f $DIR ]; then
+      sudo mkdir -vp $DIR
+    fi
+  done
+}
+
+worker_check_dirs_and_create() {
+  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubernetes.paths[]" cluster-config.json)
+  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubelet.paths[]" cluster-config.json)
+  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kube_proxy.paths[]" cluster-config.json)
+}

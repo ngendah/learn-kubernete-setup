@@ -4,6 +4,8 @@
 source common.sh
 
 ca_generate() {
+  master_check_dirs_and_create
+
   openssl genrsa -out $DATA_DIR/ca.key 2048
   openssl req -new -key $DATA_DIR/ca.key \
     -subj "/CN=KUBERNETES-CA/O=Kubernetes" \

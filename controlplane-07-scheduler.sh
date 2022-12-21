@@ -13,6 +13,7 @@ scheduler_download() {
 }
 
 scheduler_generate() {
+  master_check_dirs_and_create
   scheduler_download
 
   openssl genrsa -out $DATA_DIR/kube-scheduler.key 2048

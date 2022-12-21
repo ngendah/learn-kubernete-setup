@@ -13,6 +13,7 @@ cm_download() {
 }
 
 cm_generate() {
+  master_check_dirs_and_create
   cm_download
 
   openssl genrsa -out $DATA_DIR/kube-controller-manager.key 2048

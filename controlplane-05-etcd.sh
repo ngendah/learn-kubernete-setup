@@ -13,6 +13,7 @@ etcd_download() {
 }
 
 etcd_generate() {
+  master_check_dirs_and_create
   etcd_download
 
   cat >$DATA_DIR/openssl-etcd.cnf <<EOF

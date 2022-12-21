@@ -4,6 +4,8 @@
 source common.sh
 
 admin_generate() {
+  master_check_dirs_and_create
+
   openssl genrsa -out $DATA_DIR/admin.key 2048
   openssl req -new -key $DATA_DIR/admin.key \
     -subj "/CN=admin/O=system:masters" \
