@@ -83,17 +83,17 @@ if [ "$(ssh -o ConnectTimeout=1 $NODE sudo swapon -s)" != "" ]; then
 fi
 
 master_check_dirs_and_create() {
-  DIR=$(jq ".script_data_dir" cluster-config.json)
+  DIR=$(jq -r ".script_data_dir" cluster-config.json)
   if [ ! -f $DIR ]; then
     mkdir -p $DIR
   fi
-  DIRS=$(jq ".nodes.control_plane.kubernetes.paths[]" cluster-config.json)
+  DIRS=$(jq -r ".nodes.control_plane.kubernetes.paths[]" cluster-config.json)
   for DIR in $DIRS; do
     if [ ! -f $DIR ]; then
       sudo mkdir -vp $DIR
     fi
   done
-  DIRS=$(jq ".nodes.control_plane.etcd.paths[]" cluster-config.json)
+  DIRS=$(jq -r ".nodes.control_plane.etcd.paths[]" cluster-config.json)
   for DIR in $DIRS; do
     if [ ! -f $DIR ]; then
       sudo mkdir -vp $DIR
