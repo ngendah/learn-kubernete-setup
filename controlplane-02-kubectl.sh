@@ -21,7 +21,7 @@ kubectl_generate() {
 kubectl_install() {
   sudo cp -v $DATA_DIR/kubectl $BIN_DIR
 
-  sudo chown -v root:root $BIN_DIR/kubectl
+  sudo chown -v $USER:root $BIN_DIR/kubectl
   sudo chmod -v 500 $BIN_DIR/kubectl
 }
 
