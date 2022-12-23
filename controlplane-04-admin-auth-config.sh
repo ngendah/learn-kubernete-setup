@@ -12,22 +12,22 @@ admin_generate() {
     -subj "/CN=admin/O=system:masters" \
     -out $DATA_DIR/admin.csr
   openssl x509 -req -in $DATA_DIR/admin.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/admin.crt \
     -days 1000
 
   # Kube-config
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    --certificate-authority=$DATA_DIR/$CA_FILE_NAME.crt \
     --embed-certs=true \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=$DATA_DIR/admin.kubeconfig
 
   kubectl config set-credentials admin \
-    --client-certificate=$MASTER_CERT_DIR/admin.crt \
-    --client-key=$MASTER_CERT_DIR/admin.key \
+    --client-certificate=$DATA_DIR/admin.crt \
+    --client-key=$DATA_DIR/admin.key \
     --embed-certs=true \
     --kubeconfig=$DATA_DIR/admin.kubeconfig
 
