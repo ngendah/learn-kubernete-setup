@@ -112,4 +112,12 @@ master_ca_exists() {
     echo "Certificate authority has not been created, run CA-certificate.sh script first"
     exit 1
   fi
+  if [ -f $DATA_DIR/$CA_FILE_NAME.crt ] && [ -f $MASTER_CERT_DIR/$CA_FILE_NAME.crt ]; then
+    shaf1=$(sha256sum $DATA_DIR/$CA_FILE_NAME.crt | cut -d " " -f1)
+    shaf2=$(sha256sum $MASTER_CERT_DIR/$CA_FILE_NAME.crt | cut -d " " -f1)
+    if [ $shaf1 != $shaf2 ]; then
+      echo "! Differing Certificate authority files, remove-all and restart"
+      exit 1
+    fi
+  fi
 }
