@@ -44,8 +44,8 @@ EOF
     -config $DATA_DIR/openssl-apiserver.cnf \
     -out $DATA_DIR/kube-apiserver.csr
   openssl x509 -req -in $DATA_DIR/kube-apiserver.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-apiserver.crt \
     -extensions v3_req \
@@ -56,8 +56,8 @@ EOF
     -subj "/CN=service-accounts/O=Kubernetes" \
     -out $DATA_DIR/service-account.csr
   openssl x509 -req -in $DATA_DIR/service-account.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/service-account.crt \
     -days 1000
@@ -79,8 +79,8 @@ EOF
     -out $DATA_DIR/apiserver-kubelet-client.csr \
     -config $DATA_DIR/openssl-kubelet.cnf
   openssl x509 -req -in $DATA_DIR/apiserver-kubelet-client.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/apiserver-kubelet-client.crt \
     -extensions v3_req \

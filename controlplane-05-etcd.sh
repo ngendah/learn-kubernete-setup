@@ -39,8 +39,8 @@ EOF
     -out $DATA_DIR/etcd-server.csr \
     -config $DATA_DIR/openssl-etcd.cnf
   openssl x509 -req -in $DATA_DIR/etcd-server.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/etcd-server.crt \
     -extensions v3_req \

@@ -22,19 +22,19 @@ scheduler_generate() {
     -subj "/CN=system:kube-scheduler/O=system:kube-scheduler" \
     -out $DATA_DIR/kube-scheduler.csr
   openssl x509 -req -in $DATA_DIR/kube-scheduler.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -CA $DATA_DIR/$CA_FILE_NAME.crt \
+    -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
     -out $DATA_DIR/kube-scheduler.crt -days 1000
 
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
+    --certificate-authority=$DATA_DIR/$CA_FILE_NAME.crt \
     --server=https://127.0.0.1:6443 \
     --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
 
   kubectl config set-credentials system:kube-scheduler \
-    --client-certificate=$MASTER_CERT_DIR/kube-scheduler.crt \
-    --client-key=$MASTER_CERT_DIR/kube-scheduler.key \
+    --client-certificate=$DATA_DIR/kube-scheduler.crt \
+    --client-key=$DATA_DIR/kube-scheduler.key \
     --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
 
   kubectl config set-context default \
