@@ -83,17 +83,16 @@ if [ "$(ssh -o ConnectTimeout=1 $NODE sudo swapon -s)" != "" ]; then
 fi
 
 master_check_dirs_and_create() {
-  DIR=$(jq -r ".script_data_dir" cluster-config.json)
-  if [ ! -f $DIR ]; then
-    mkdir -p $DIR
+  if [ ! -f $DATA_DIR ]; then
+    mkdir -p $DATA_DIR
   fi
-  DIRS=$(jq -r ".nodes.control_plane.kubernetes.paths[]" cluster-config.json)
+  DIRS=$(jq ".nodes.control_plane.kubernetes.paths[]" cluster-config.json | tr -d '\n' | sed 's/""/" "/g' | sed 's/"//g')
   for DIR in $DIRS; do
     if [ ! -f $DIR ]; then
       sudo mkdir -vp $DIR
     fi
   done
-  DIRS=$(jq -r ".nodes.control_plane.etcd.paths[]" cluster-config.json)
+  DIRS=$(jq ".nodes.control_plane.etcd.paths[]" cluster-config.json | tr -d '\n' | sed 's/""/" "/g' | sed 's/"//g')
   for DIR in $DIRS; do
     if [ ! -f $DIR ]; then
       sudo mkdir -vp $DIR
@@ -102,9 +101,9 @@ master_check_dirs_and_create() {
 }
 
 worker_check_dirs_and_create() {
-  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubernetes.paths[]" cluster-config.json)
-  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubelet.paths[]" cluster-config.json)
-  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kube_proxy.paths[]" cluster-config.json)
+  ssh -T $NODE sudo mkdir -vp $(jq ".nodes.worker.kubernetes.paths[]" cluster-config.json | tr -d '\n' | sed 's/""/" "/g' | sed 's/"//g')
+  ssh -T $NODE sudo mkdir -vp $(jq ".nodes.worker.kubelet.paths[]" cluster-config.json | tr -d '\n' | sed 's/""/" "/g' | sed 's/"//g')
+  ssh -T $NODE sudo mkdir -vp $(jq ".nodes.worker.kube_proxy.paths[]" cluster-config.json | tr -d '\n' | sed 's/""/" "/g' | sed 's/"//g')
 }
 
 master_ca_exists() {
