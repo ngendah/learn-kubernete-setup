@@ -1,6 +1,10 @@
 - hosts: all
   become: true
   tasks:
+  - name: Assert Ansible version
+    ansible.builtin.assert:
+      that: ansible_version.full >= "2.14.1"
+
   - name: Update
     apt:
       update_cache: yes
