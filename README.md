@@ -18,46 +18,20 @@ There are alternatives;
 - 2 x86_64 VM servers installed with minimized `Ubuntu 22.04 server`.
   - one server will be the control plane(master) and the other a worker.
 
+- Ansible installed on the host.
+
 - The same login user configured on the master and worker node.
-  - This requirement simplifies ssh logins and command execution. 
+  - This requirement simplifies ssh logins and command execution.
 
-- The master node user can ssh into the worker node.
-  - Generate ssh key pair on the master node, without a passphrase.
-    
-    `ssh-keygen`
-  
-  - Authorize the master on the worker using ssh.
-    
-    `ssh-copy-id <worker-node-ip>`
-  
-  - Check you can ssh into the worker node
+  - You can ssh into the VM's from the host.
 
-    `ssh <worker-node-ip>`
+  - Copy and edit the `inventory.ini.sample` with the ssh logins to the hosts.
 
-- Disable swap.
-  - Run `swapoff -a`, to immediately disable swap.
-  - Remove any swap entry from `/etc/fstab`, ensuring swap is not enabled on reboot.
+- To complete the setup run ansible;
 
-- Bridge networking is enabled as documented [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#forwarding-ipv4-and-letting-iptables-see-bridged-traffic).
-  Only what is documented under the heading: `Forwarding IPv4 and letting iptables see bridged traffic`
-
-- On the worker node install docker and containerd as documented [here](https://docs.docker.com/engine/install/ubuntu/).
-
-  - On `Ubuntu 22.04 server`, I had to regenerate containerd configuration as follows;
-    
-    `containerd config default > ~/config.toml`
-  - Adjust `config.toml` as documented [here](https://kubernetes.io/docs/setup/production-environment/container-runtimes/#containerd-systemd). Under the heading `Configuring the systemd cgroup driver`
-  
-  - Replace the config on `/etc/containerd/config.toml` with the new config.
-  
-    ```commandline
-      sudo mv ~/config.toml /etc/containerd/
-      sudo chmod 600 /etc/containerd/config.toml
-      sudo chown root:root /etc/containerd/config.toml
-    ```
-  
-  - Restart `containerd` daemon
-    `sudo systemctl restart containerd`
+  ```
+    ansible-playbook -i inventory.ini playbooks/master.yaml -K
+  ```
 
 
 ## Steps
@@ -90,6 +64,17 @@ There are alternatives;
     - print trace by adding to the top of the script the command `set -x`
 
     - `Journalctl` with the service unit name
+
+
+    ansible-playbook -i inventory.ini playbooks/master.yaml
+
+    Vagrant:
+
+      - https://github.com/hashicorp/vagrant/issues/12664
+
+      - https://github.com/vagrant-libvirt/vagrant-libvirt/issues/921
+
+      - https://developer.hashicorp.com/vagrant/docs/provisioning/ansible_intro#the-inventory-file
 
 
 ## Credits

@@ -1,2 +1,3 @@
 cluster-config.json
-data/
+data/.vagrant
+inventory.ini
