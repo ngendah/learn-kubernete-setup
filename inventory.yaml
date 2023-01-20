@@ -1,0 +1,12 @@
+all:
+  hosts:
+    control:
+      ansible_host: 172.16.16.210
+    nodes:
+      ansible_host: 172.16.16.195
+  vars:
+    ansible_port: 22
+    ansible_user: master
+    ansible_private_key: ./k8s_rsa
+    ansible_ssh_pass: 1234
+    ansible_sudo_pass: 1234

@@ -12,51 +12,77 @@ There are alternatives;
 2. [Kubernetes the hard way](https://github.com/kelseyhightower/kubernetes-the-hard-way)
 
 ## Pre-requisites
-- Some knowledge of Kubernetes and its components.
+
+- Knowledge of Kubernetes and its components.
+  
   - Kubernetes concepts documentation is available [here.](https://kubernetes.io/docs/concepts/overview/components/)
 
-- 2 x86_64 VM servers installed with minimized `Ubuntu 22.04 server`.
+- Installed on the host:
 
-  - one server will be the control plane(master) and the other a worker.
+  - [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/installation_distros.html)
 
-  - Configure the 2 servers with the same user login.
+  - [jq](https://stedolan.github.io/jq/download/)
 
-- Ansible installed on the host.
+  - [yq](https://github.com/mikefarah/yq)
 
-- On the host:
+  If you are using Windows, I would recommend using [WSL](https://ubuntu.com/wsl).
 
-  - You can ssh into the 2 VM's.
+- 2 x86_64 VM servers with `Ubuntu 22.04 server`, preferably minimized; no opionion how you do it. Designate one server as the control plane node and the other as worker node.
 
-  - Copy and edit the `inventory.ini.sample` with the ssh logins to the control plane host and worker node.
+  * By hand;
 
-- To complete the setup run `setup.sh`;
+    - Download `Ubuntu 22 server` iso images.
+
+    - Use `Virt Manager` or `Virtual Box` to create the 2 servers.
+
+      - Configure the 2 servers with the same user login.
+
+      - On the host generate ssh key to login into the 2 server.
+
+        ```
+        ssh-keygen -f <path-to-private-key-file>
+        ```
+
+      - From the host upload the generated ssh key (public) to the 2 servers.
+
+        ```
+        ssh-copy-id -i <path-to-private-key-file> <login-name>@<ip>
+        ```
+
+  * [Vagrant](https://developer.hashicorp.com/vagrant/docs/installation) there is a vagrant script on the `vagrant` directory.
+
+
+  * [Footloose](https://github.com/weaveworks/footloose)
+
+
+  * [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
+
+
+  After the servers are up, create a file `inventory.yaml` from `inventory.sample.yaml` and update it with the its indicated params for both the control plane node and worker node.
+
+- Finally run `setup.sh`
 
   ```
-    ./setup.sh
+  ./setup.sh
   ```
 
+  The setup script will automatically upload the [k8s-scripts](./k8s-scripts) to the control plane node.
 
-## Steps
 
-1. Obtain the IP addresses for the master and worker nodes, by running the following command on the master and worker nodes.
-    
-   `ip -br address`
 
-2. Adjust the file [cluster-config.json](cluster-config.json) for;
-     - Master node ip, the key `nodes.control_plane.ip`
-     - Worker node ip, the key `nodes.worker.ip`
+## Play with the k8s setup scripts.
 
-3. Set up the control plane node.
+1. Set up the control plane node.
 
-4. Set up the worker node.
+2. Set up the worker node.
 
-5. Finally, to get a ready cluster to deploy pods;
+3. Finally, to get a ready cluster to deploy pods;
 
     - Install [CoreDNS](https://github.com/coredns/deployment/tree/master/kubernetes).
 
     - Install Container Networking Interface(CNI) such as [WeaveNet](https://www.weave.works/docs/net/latest/kubernetes/kube-addon/).
 
-6. Troubleshooting
+4. Troubleshooting
     
     - On the terminal you can source the file `common.sh` and `printenv` to see all the environment variables used
       

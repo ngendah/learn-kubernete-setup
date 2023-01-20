@@ -1,0 +1,13 @@
+all:
+  hosts:
+    control:
+      ansible_host: 192.168.70.10
+    nodes:
+      ansible_host: 192.168.70.11
+  vars:
+    ansible_port: 22
+    ansible_user: master
+    ansible_private_key: /home/me/.ssh/id_rsa
+    ansible_ssh_pass: 1234
+    ansible_sudo_pass: 1234
+

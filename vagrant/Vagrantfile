@@ -1,0 +1,47 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  image_name = "bento/ubuntu-22.04"
+  config.vm.synced_folder "./", "/vagrant", disabled: true
+  
+  config.vm.provider :libvirt do |v|
+    image_name = "alvistack/ubuntu-22.04"
+    v.driver = "qemu"
+    v.memory = 1024
+    v.cpus = 1
+  end
+
+  config.vm.provider :virtualbox do |v|
+    v.memory = 1024
+    v.cpus = 1
+  end
+
+  unless File.file?("./ssh/id_rsa")
+    %x(mkdir ./ssh)
+    %x(ssh-keygen -t rsa -b 4096 -f ./ssh/id_rsa -q -N "")
+  end
+
+  config.vm.define "control" do |master|
+    master.vm.box = image_name
+    master.vm.hostname = "k8s-control"
+    config.vm.provision "shell" do |s|
+      ssh_pub_key = File.readlines("./ssh/id_rsa.pub").first.strip
+      s.inline = <<-SHELL
+        echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+    end
+  end
+
+  config.vm.define "node01" do |node|
+    node.vm.box = image_name
+    node.vm.hostname = "k8s-node01"
+    config.vm.provision "shell" do |s|
+      ssh_pub_key = File.readlines("./ssh/id_rsa.pub").first.strip
+      s.inline = <<-SHELL
+        echo #{ssh_pub_key} >> /home/vagrant/.ssh/authorized_keys
+      SHELL
+    end
+  end
+
+end

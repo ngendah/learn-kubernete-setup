@@ -102,10 +102,10 @@
       dest: ~/
       mode: u=rwx,g=r,o=r
 
-  - name: copy cluster config
+  - name: copy ssh-key
     become: false
-    ansible.builtin.copy:
-      src: ../cluster-config.json
-      dest: ~/k8s-scripts
-
+    ansible.builtin.copy: 
+      src: ./ssh/id_rsa
+      dest: ~/.ssh/
+      mode: '0600'
 

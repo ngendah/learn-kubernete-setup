@@ -3,11 +3,28 @@
 # shellcheck disable=SC2086
 
 setup_control() {
-  ansible-playbook -vv -l control -Ki inventory.ini ./setup/master.yaml
+  # add option -K to request for sudo password
+  ansible-playbook -vv -l control -i inventory.yaml ./setup/master.yaml
 }
 
 setup_nodes() {
-  ansible-playbook -vv -l nodes -Ki inventory.ini ./setup/node.yaml
+  ansible-playbook -vv -l nodes -i inventory.yaml ./setup/node.yaml
+}
+
+setup_cluster_config() {
+  control_plane_ip=$(yq '.all.hosts.control.ansible_host' inventory.yaml)
+  node_ip=$(yq '.all.hosts.nodes.ansible_host' inventory.yaml)
+  control_plane_ip="$control_plane_ip" jq '.nodes.control_plane.ip=env.control_plane_ip' k8s-scripts/cluster-config.json \
+    | node_ip="$node_ip" jq '.nodes.worker.ip=env.node_ip' - > k8s-scripts/cluster-config.tmp.json
+  mv k8s-scripts/cluster-config.tmp.json k8s-scripts/cluster-config.json
+}
+
+setup_generate_sshkey() {
+  # generate key for ssh login from the k8s-control
+  if [ ! -f ./setup/ssh/id_rsa ]; then
+    mkdir ./setup/ssh
+    ssh-keygen -t rsa -b 4096 -f ./setup/ssh/id_rsa -q -N ""
+  fi
 }
 
 ping() {
@@ -16,34 +33,23 @@ ping() {
   if [ "$1" != "" ]; then
     group=$1
   fi
-  ansible $group -m ping -i inventory.ini
+  ansible $group -m ping -i inventory.yaml
 }
 
 case $1 in
-"ping_all")
+"ping")
   ping
   ;;
-"control")
-  ping control
+*)
+  ping
   if [ $? -ne 0 ]; then
-    echo "Control server not reachable, edit inventory.ini with correct params"
+    echo "One or more servers  are not reachable, edit inventory.yaml with correct params"
     exit 1
   fi
+  setup_generate_sshkey
+  setup_cluster_config
+  setup_nodes
   setup_control
   ;;
-"nodes")
-  ping nodes
-  if [ $? -ne 0 ]; then
-    echo "Node server not reachable, edit inventory.ini with correct params"
-    exit 1
-  fi
-  setup_nodes
-  ;;
-*)
-  echo "Available options are [ping_all, control, nodes]"
-  echo "Ping all to check all servers are reachable"
-  echo "For example: ./setup control"
-  ;;
 esac
-
 
