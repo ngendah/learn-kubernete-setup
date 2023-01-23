@@ -27,13 +27,13 @@ There are alternatives;
 
   If you are using Windows, I would recommend using [WSL](https://ubuntu.com/wsl).
 
-- 2 x86_64 VM servers with `Ubuntu 22.04 server`, preferably minimized; no opionion how you do it. Designate one server as the control plane node and the other as worker node.
+- 2 x86_64 VM servers with `Ubuntu 22.04 server`. Designate one server as the control plane node and the other as worker node.
 
   * By hand;
 
     - Download `Ubuntu 22 server` iso images.
 
-    - Use `Virt Manager` or `Virtual Box` to create the 2 servers.
+    - Use `Virt Manager` or `Virtual Box` to create the 2 minimized servers.
 
       - Configure the 2 servers with the same user login.
 
@@ -52,7 +52,7 @@ There are alternatives;
   * [Vagrant](https://developer.hashicorp.com/vagrant/docs/installation) there is a vagrant script on the `vagrant` directory.
 
 
-  * [Footloose](https://github.com/weaveworks/footloose)
+  * [LXD](https://linuxcontainers.org/lxd/getting-started-cli/)
 
 
   * [Terraform](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli).
