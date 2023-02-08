@@ -48,7 +48,7 @@ authentication:
     clientCAFile: $WORKER_CERT_DIR/$CA_FILE_NAME.crt
 authorization:
   mode: Webhook
-clusterDomain: cluster.local
+clusterDomain: $CLUSTER_DOMAIN_NAME
 clusterDNS:
   - ${CLUSTER_DNS}
 resolvConf: /run/systemd/resolve/resolv.conf
