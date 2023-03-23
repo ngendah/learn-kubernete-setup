@@ -1,0 +1,8 @@
+---
+- name: Allow ssh logins from k8s control
+  become: false
+  ansible.posix.authorized_key:
+    user: "{{ whoami.stdout }}"
+    state: present
+    key: ssh/id_rsa.pub
+

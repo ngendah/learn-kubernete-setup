@@ -1,4 +1,2 @@
-cluster-config.json
 .vagrant
 inventory.ini
-ssh/
