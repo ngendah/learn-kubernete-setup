@@ -1,0 +1,15 @@
+---
+- name: copy scripts
+  become: false
+  ansible.builtin.copy:
+    src: ../k8s-scripts
+    dest: ~/
+    mode: u=rwx,g=r,o=r
+
+- name: copy ssh-key
+  become: false
+  ansible.builtin.copy: 
+    src: ssh/
+    dest: ~/.ssh/
+    mode: '0600'
+
