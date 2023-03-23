@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+##
+## Copyright (c) 2022 Ngenda Henry
+##
+## For the license information refer to LICENSE.
+##
+
 # shellcheck disable=SC2086
 source common.sh
 

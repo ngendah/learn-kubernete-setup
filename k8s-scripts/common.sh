@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+##
+## Copyright (c) 2022 Ngenda Henry
+##
+## For the license information refer to LICENSE.
+##
+
 # shellcheck disable=SC2155
 export MASTER_1=$(jq -r '.nodes.control_plane.ip' cluster-config.json)
 export WORKER_1=$(jq -r '.nodes.worker.ip' cluster-config.json)
