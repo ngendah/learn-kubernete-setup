@@ -1,9 +1,9 @@
 all:
   hosts:
     control:
-      ansible_host: 192.168.70.10
+      ansible_host: 192.168.56.10
     nodes:
-      ansible_host: 192.168.70.11
+      ansible_host: 192.168.56.11
   vars:
     ansible_port: 22
     ansible_user: master

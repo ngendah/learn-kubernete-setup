@@ -2,19 +2,12 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  image_name = "bento/ubuntu-22.04"
+  image_name = "ubuntu/jammy64"
   config.vm.synced_folder "./", "/vagrant", disabled: true
-  
-  config.vm.provider :libvirt do |v|
-    image_name = "alvistack/ubuntu-22.04"
-    v.driver = "qemu"
-    v.memory = 1024
-    v.cpus = 1
-  end
 
   config.vm.provider :virtualbox do |v|
     v.memory = 1024
-    v.cpus = 1
+    v.cpus = 2
   end
 
   unless File.file?("./ssh/id_rsa")
