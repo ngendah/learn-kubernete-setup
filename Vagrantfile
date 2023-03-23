@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
     node.vm.provision "ansible" do |ansible|
       ansible.playbook = "cluster/main.yml"
       ansible.groups = {
-        'node01': ['node01'],
+        'node': ['node01'],
       }
     end
   end

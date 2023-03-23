@@ -4,5 +4,5 @@
   ansible.posix.authorized_key:
     user: "{{ whoami.stdout }}"
     state: present
-    key: ssh/id_rsa.pub
+    key: "{{ lookup('file', 'ssh/id_rsa.pub') }}"
 
