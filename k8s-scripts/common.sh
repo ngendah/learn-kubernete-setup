@@ -78,7 +78,7 @@ if [ $count -eq 0 ]; then
 fi
 
 # check node user sudo permission doesn't require password
-if [ "$(ssh $NODE find /etc/sudoers.d/ -name $USER -type f)" == "" ]; then
+if [ "$(ssh $NODE sudo find /etc/sudoers.d/ -name $USER -type f)" == "" ]; then
   echo "enable node user $USER sudoers, refer to worker-01-user-sudoers.sh script"
   exit 1
 fi
