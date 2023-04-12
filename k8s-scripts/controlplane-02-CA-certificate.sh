@@ -12,15 +12,31 @@ source common.sh
 ca_generate() {
   master_check_dirs_and_create
 
+  cat>$DATA_DIR/$CA_FILE_NAME.cnf<<EOF
+[req]
+req_extensions = v3_req
+[ v3_req ]
+basicConstraints = critical, CA:true
+keyUsage = critical, keyCertSign, cRLSign, digitalSignature, keyEncipherment
+EOF
   openssl genrsa -out $DATA_DIR/$CA_FILE_NAME.key 2048
   openssl req -new -key $DATA_DIR/$CA_FILE_NAME.key \
     -subj "/CN=KUBERNETES-CA/O=Kubernetes" \
+    -config $DATA_DIR/$CA_FILE_NAME.cnf \
     -out $DATA_DIR/$CA_FILE_NAME.csr
   openssl x509 -req -in $DATA_DIR/$CA_FILE_NAME.csr \
     -signkey $DATA_DIR/$CA_FILE_NAME.key \
+    -extensions v3_req \
+    -extfile $DATA_DIR/$CA_FILE_NAME.cnf \
     -CAcreateserial \
     -out $DATA_DIR/$CA_FILE_NAME.crt \
     -days 1000
+}
+
+ca_generate_short() {
+  openssl req -newkey rsa:2048 -nodes -sha256 -keyout $DATA_DIR/${CA_FILE_NAME}.key \
+    -subj "/CN=KUBERNETES-CA/O=Kubernetes" \
+    -x509 -days 1000 -out $DATA_DIR/${CA_FILE_NAME}.crt
 }
 
 ca_install() {
@@ -54,6 +70,10 @@ case $1 in
 "remove")
   ;;
 "generate")
+  ca_generate
+  ;;
+"generate_s")
+  ca_generate_short
   ;;
 "install")
   ;;

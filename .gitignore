@@ -1,3 +1,4 @@
 .vagrant
 inventory.ini
 id_rsa*
+k8s-scripts/data
