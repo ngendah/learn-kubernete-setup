@@ -9,49 +9,59 @@
 # shellcheck disable=SC2086
 source common.sh
 
+SCHEDULER_FILE_NAME=kube-scheduler
+SCHEDULER_SETUP_DIR="${DATA_DIR}/scheduler"
+
 scheduler_download() {
-  FILE_NAME=kube-scheduler
-  if [ ! -f $DATA_DIR/$FILE_NAME ]; then
-    wget --show-progress --https-only --timestamping \
-      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$FILE_NAME"
-    mv $FILE_NAME $DATA_DIR/
+  SCHEDULER_DOWNLOAD_FILE_NAME=$SCHEDULER_SETUP_DIR/$SCHEDULER_FILE_NAME
+  if [ ! -f $SCHEDULER_DOWNLOAD_FILE_NAME ]; then
+    wget -P $SCHEDULER_SETUP_DIR -q --show-progress --https-only --timestamping \
+      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$SCHEDULER_FILE_NAME"
+  else
+    echo "$SCHEDULER_DOWNLOAD_FILE_NAME already exists, skipping download"
   fi
 }
 
-scheduler_generate() {
+scheduler_setup_dirs() {
   master_check_dirs_and_create
+  mkdir -p $SCHEDULER_SETUP_DIR
+}
+
+scheduler_generate() {
+  scheduler_setup_dirs
   master_ca_exists
   scheduler_download
 
-  openssl genrsa -out $DATA_DIR/kube-scheduler.key 2048
-  openssl req -new -key $DATA_DIR/kube-scheduler.key \
+  openssl genrsa -out $SCHEDULER_SETUP_DIR/kube-scheduler.key 2048
+  openssl req -new -key $SCHEDULER_SETUP_DIR/kube-scheduler.key \
     -subj "/CN=system:kube-scheduler/O=system:kube-scheduler" \
-    -out $DATA_DIR/kube-scheduler.csr
-  openssl x509 -req -in $DATA_DIR/kube-scheduler.csr \
+    -out $SCHEDULER_SETUP_DIR/kube-scheduler.csr
+  openssl x509 -req -in $SCHEDULER_SETUP_DIR/kube-scheduler.csr \
     -CA $DATA_DIR/$CA_FILE_NAME.crt \
     -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/kube-scheduler.crt -days 1000
+    -out $SCHEDULER_SETUP_DIR/kube-scheduler.crt -days 1000
 
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$DATA_DIR/$CA_FILE_NAME.crt \
+    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
     --server=https://127.0.0.1:6443 \
-    --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
+    --kubeconfig=$SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig
 
   kubectl config set-credentials system:kube-scheduler \
-    --client-certificate=$DATA_DIR/kube-scheduler.crt \
-    --client-key=$DATA_DIR/kube-scheduler.key \
-    --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
+    --client-certificate=$SCHEDULER_SETUP_DIR/kube-scheduler.crt \
+    --embed-certs=true \
+    --client-key=$SCHEDULER_SETUP_DIR/kube-scheduler.key \
+    --kubeconfig=$SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig
 
   kubectl config set-context default \
     --cluster="$CLUSTER_NAME" \
     --user=system:kube-scheduler \
-    --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
+    --kubeconfig=$SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig
 
   kubectl config use-context default \
-    --kubeconfig=$DATA_DIR/kube-scheduler.kubeconfig
+    --kubeconfig=$SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig
 
-  cat <<EOF | tee $DATA_DIR/kube-scheduler.service
+  cat <<EOF | tee $SCHEDULER_SETUP_DIR/kube-scheduler.service
 [Unit]
 Description=Kubernetes Scheduler
 Documentation=https://github.com/kubernetes/kubernetes
@@ -70,10 +80,10 @@ EOF
 }
 
 scheduler_install() {
-  sudo cp -v $DATA_DIR/kube-scheduler $BIN_DIR/
-  sudo cp -v $DATA_DIR/kube-scheduler.key $DATA_DIR/kube-scheduler.crt $MASTER_CERT_DIR
-  sudo cp -v $DATA_DIR/kube-scheduler.kubeconfig $MASTER_CONFIG_DIR
-  sudo cp -v $DATA_DIR/kube-scheduler.service $SERVICES_DIR
+  sudo cp -v $SCHEDULER_SETUP_DIR/kube-scheduler $BIN_DIR/
+  sudo cp -v $SCHEDULER_SETUP_DIR/kube-scheduler.key $SCHEDULER_SETUP_DIR/kube-scheduler.crt $MASTER_CERT_DIR
+  sudo cp -v $SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig $MASTER_CONFIG_DIR
+  sudo cp -v $SCHEDULER_SETUP_DIR/kube-scheduler.service $SERVICES_DIR
 
   sudo chmod -v 500 $BIN_DIR/kube-scheduler
   sudo chmod -Rv 600 $MASTER_CERT_DIR/kube-scheduler* $MASTER_CONFIG_DIR/kube-scheduler*
@@ -88,7 +98,7 @@ scheduler_remove() {
 
 scheduler_remove_all() {
   scheduler_remove
-  rm -fr $DATA_DIR/kube-scheduler*
+  rm -fr $SCHEDULER_SETUP_DIR/*
 }
 
 scheduler_start() {
@@ -107,8 +117,8 @@ scheduler_restart() {
 }
 
 scheduler_reinstall() {
-  if [ -f $DATA_DIR/kube-scheduler.key ] && [ -f $DATA_DIR/kube-scheduler.crt ] && \
-    [ -f $DATA_DIR/kube-scheduler.kubeconfig ] && [ -f $DATA_DIR/kube-scheduler.service ]; then
+  if [ -f $SCHEDULER_SETUP_DIR/kube-scheduler.key ] && [ -f $SCHEDULER_SETUP_DIR/kube-scheduler.crt ] && \
+    [ -f $SCHEDULER_SETUP_DIR/kube-scheduler.kubeconfig ] && [ -f $SCHEDULER_SETUP_DIR/kube-scheduler.service ]; then
     scheduler_remove
     scheduler_install
   else
@@ -119,6 +129,13 @@ scheduler_reinstall() {
 }
 
 case $1 in
+"setup-dirs")
+  scheduler_setup_dirs
+  ;;
+"download")
+  scheduler_setup_dirs
+  scheduler_download
+  ;;
 "remove")
   scheduler_stop
   scheduler_remove
@@ -135,12 +152,13 @@ case $1 in
   scheduler_reinstall
   scheduler_start
   ;;
-"remove-all") ;;
-
+"remove-all")
+  scheduler_stop
+  scheduler_remove_all
+  ;;
 "stop")
   scheduler_stop
   ;;
-
 "start")
   scheduler_start
   ;;
