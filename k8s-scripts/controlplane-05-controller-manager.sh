@@ -9,49 +9,64 @@
 # shellcheck disable=SC2086
 source common.sh
 
+CM_FILE_NAME=kube-controller-manager
+CM_SETUP_DIR="${DATA_DIR}/controller-manager"
+
 cm_download() {
-  FILE_NAME=kube-controller-manager
-  if [ ! -f $DATA_DIR/$FILE_NAME ]; then
-    wget --show-progress --https-only --timestamping \
-      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$FILE_NAME"
-    mv $FILE_NAME $DATA_DIR/
+  CM_DOWNLOAD_FILE_NAME=$CM_SETUP_DIR/$CM_FILE_NAME
+  if [ ! -f $CM_DOWNLOAD_FILE_NAME ]; then
+    wget -P $CM_SETUP_DIR --show-progress --https-only --timestamping \
+      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$CM_FILE_NAME"
+  else
+    echo "$CM_DOWNLOAD_FILE_NAME already exists, skipping download"
   fi
 }
 
-cm_generate() {
+cm_setup_dirs() {
   master_check_dirs_and_create
+  mkdir -p $CM_SETUP_DIR
+}
+
+cm_generate() {
+  cm_setup_dirs
   master_ca_exists
   cm_download
 
-  openssl genrsa -out $DATA_DIR/kube-controller-manager.key 2048
-  openssl req -new -key $DATA_DIR/kube-controller-manager.key \
+  # TODO: change kube-controller-manager to $CM_FILE_NAME
+  # TODO: mv cert generation to own fn
+  openssl genrsa -out $CM_SETUP_DIR/kube-controller-manager.key 2048
+  openssl req -new -key $CM_SETUP_DIR/kube-controller-manager.key \
     -subj "/CN=system:kube-controller-manager/O=system:kube-controller-manager" \
-    -out $DATA_DIR/kube-controller-manager.csr
-  openssl x509 -req -in $DATA_DIR/kube-controller-manager.csr \
+    -out $CM_SETUP_DIR/kube-controller-manager.csr
+  openssl x509 -req -in $CM_SETUP_DIR/kube-controller-manager.csr \
     -CA $DATA_DIR/$CA_FILE_NAME.crt \
     -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/kube-controller-manager.crt -days 1000
+    -out $CM_SETUP_DIR/kube-controller-manager.crt -days 1000
 
   kubectl config set-cluster "$CLUSTER_NAME" \
-    --certificate-authority=$DATA_DIR/$CA_FILE_NAME.crt \
+    --certificate-authority=$MASTER_CERT_DIR/$CA_FILE_NAME.crt \
     --server=https://127.0.0.1:6443 \
-    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+    --kubeconfig=$CM_SETUP_DIR/kube-controller-manager.kubeconfig
 
+  # TODO: remove --embed-certs option
+  # TODO: mv kube-config generation to own fn
   kubectl config set-credentials system:kube-controller-manager \
-    --client-certificate=$DATA_DIR/kube-controller-manager.crt \
-    --client-key=$DATA_DIR/kube-controller-manager.key \
-    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+    --client-certificate=$CM_SETUP_DIR/kube-controller-manager.crt \
+    --embed-certs=true \
+    --client-key=$CM_SETUP_DIR/kube-controller-manager.key \
+    --kubeconfig=$CM_SETUP_DIR/kube-controller-manager.kubeconfig
 
   kubectl config set-context default \
     --cluster="$CLUSTER_NAME" \
     --user=system:kube-controller-manager \
-    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+    --kubeconfig=$CM_SETUP_DIR/kube-controller-manager.kubeconfig
 
   kubectl config use-context default \
-    --kubeconfig=$DATA_DIR/kube-controller-manager.kubeconfig
+    --kubeconfig=$CM_SETUP_DIR/kube-controller-manager.kubeconfig
 
-  cat <<EOF | tee $DATA_DIR/kube-controller-manager.service
+  # TODO: mv service generation to own fn
+  cat <<EOF | tee $CM_SETUP_DIR/kube-controller-manager.service
 [Unit]
 Description=Kubernetes Controller Manager
 Documentation=https://github.com/kubernetes/kubernetes
@@ -86,10 +101,10 @@ EOF
 }
 
 cm_install() {
-  sudo cp -v $DATA_DIR/kube-controller-manager $BIN_DIR/
-  sudo cp -v $DATA_DIR/kube-controller-manager.key $DATA_DIR/kube-controller-manager.crt $MASTER_CERT_DIR
-  sudo cp -v $DATA_DIR/kube-controller-manager.kubeconfig $MASTER_CONFIG_DIR
-  sudo cp -v $DATA_DIR/kube-controller-manager.service $SERVICES_DIR
+  sudo cp -v $CM_SETUP_DIR/kube-controller-manager $BIN_DIR/
+  sudo cp -v $CM_SETUP_DIR/kube-controller-manager.key $CM_SETUP_DIR/kube-controller-manager.crt $MASTER_CERT_DIR
+  sudo cp -v $CM_SETUP_DIR/kube-controller-manager.kubeconfig $MASTER_CONFIG_DIR
+  sudo cp -v $CM_SETUP_DIR/kube-controller-manager.service $SERVICES_DIR
 
   sudo chmod -v 500 $BIN_DIR/kube-controller-manager
   sudo chmod -Rv 600 $MASTER_CERT_DIR/kube-controller* \
@@ -105,7 +120,7 @@ cm_remove() {
 
 cm_remove_all() {
   cm_remove
-  rm -fr $DATA_DIR/kube-controller*
+  rm -fr $CM_SETUP_DIR/*
 }
 
 cm_start() {
@@ -124,8 +139,8 @@ cm_restart() {
 }
 
 cm_reinstall() {
-  if [ -f $DATA_DIR/kube-controller-manager.key ] && [ -f $DATA_DIR/kube-controller-manager.crt ] &&
-    [ -f $DATA_DIR/kube-controller-manager.kubeconfig ] && [ -f $DATA_DIR/kube-controller-manager.service ]; then
+  if [ -f $CM_SETUP_DIR/kube-controller-manager.key ] && [ -f $CM_SETUP_DIR/kube-controller-manager.crt ] &&
+    [ -f $CM_SETUP_DIR/kube-controller-manager.kubeconfig ] && [ -f $CM_SETUP_DIR/kube-controller-manager.service ]; then
     cm_remove
     cm_install
   else
@@ -136,6 +151,13 @@ cm_reinstall() {
 }
 
 case $1 in
+"setup-dirs")
+  cm_setup_dirs
+  ;;
+"download")
+  cm_setup_dirs
+  cm_download
+  ;;
 "remove")
   cm_stop
   cm_remove
