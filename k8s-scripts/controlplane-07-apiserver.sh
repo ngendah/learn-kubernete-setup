@@ -9,25 +9,32 @@
 # shellcheck disable=SC2086
 source common.sh
 
+APISERVER_FILE_NAME=kube-apiserver
+APISERVER_SETUP_DIR="${DATA_DIR}/apiserver"
+
 apiserver_download() {
-  FILE_NAME=kube-apiserver
-  if [ ! -f $DATA_DIR/$FILE_NAME ]; then
-    wget --show-progress --https-only --timestamping \
-      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$FILE_NAME"
-    mv $FILE_NAME $DATA_DIR/
+  APISERVER_DOWNLOAD_FILE_NAME=$APISERVER_SETUP_DIR/$APISERVER_FILE_NAME
+  if [ ! -f $APISERVER_DOWNLOAD_FILE_NAME ]; then
+    wget -P $APISERVER_SETUP_DIR -q --show-progress --https-only --timestamping \
+      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$APISERVER_FILE_NAME"
+  else
+    echo "$APISERVER_DOWNLOAD_FILE_NAME already exists, skipping download"
   fi
 }
 
-apiserver_generate() {
+apiserver_setup_dirs() {
   master_check_dirs_and_create
+  mkdir -p $APISERVER_SETUP_DIR
+}
+
+apiserver_generate() {
+  apiserver_setup_dirs
   master_ca_exists
   apiserver_download
 
-  cat >$DATA_DIR/openssl-apiserver.cnf <<EOF
+  cat >$APISERVER_SETUP_DIR/openssl-apiserver.cnf <<EOF
 [req]
 req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
 [v3_req]
 basicConstraints = critical, CA:FALSE
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
@@ -44,57 +51,55 @@ IP.2 = ${MASTER_1}
 IP.3 = 127.0.0.1
 EOF
 
-  openssl genrsa -out $DATA_DIR/kube-apiserver.key 2048
-  openssl req -new -key $DATA_DIR/kube-apiserver.key \
+  openssl genrsa -out $APISERVER_SETUP_DIR/kube-apiserver.key 2048
+  openssl req -new -key $APISERVER_SETUP_DIR/kube-apiserver.key \
     -subj "/CN=kube-apiserver/O=Kubernetes" \
-    -config $DATA_DIR/openssl-apiserver.cnf \
-    -out $DATA_DIR/kube-apiserver.csr
-  openssl x509 -req -in $DATA_DIR/kube-apiserver.csr \
+    -config $APISERVER_SETUP_DIR/openssl-apiserver.cnf \
+    -out $APISERVER_SETUP_DIR/kube-apiserver.csr
+  openssl x509 -req -in $APISERVER_SETUP_DIR/kube-apiserver.csr \
     -CA $DATA_DIR/$CA_FILE_NAME.crt \
     -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/kube-apiserver.crt \
+    -out $APISERVER_SETUP_DIR/kube-apiserver.crt \
     -extensions v3_req \
-    -extfile $DATA_DIR/openssl-apiserver.cnf -days 1000
+    -extfile $APISERVER_SETUP_DIR/openssl-apiserver.cnf -days 1000
 
-  openssl genrsa -out $DATA_DIR/service-account.key 2048
-  openssl req -new -key $DATA_DIR/service-account.key \
+  openssl genrsa -out $APISERVER_SETUP_DIR/service-account.key 2048
+  openssl req -new -key $APISERVER_SETUP_DIR/service-account.key \
     -subj "/CN=service-accounts/O=Kubernetes" \
-    -out $DATA_DIR/service-account.csr
-  openssl x509 -req -in $DATA_DIR/service-account.csr \
+    -out $APISERVER_SETUP_DIR/service-account.csr
+  openssl x509 -req -in $APISERVER_SETUP_DIR/service-account.csr \
     -CA $DATA_DIR/$CA_FILE_NAME.crt \
     -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/service-account.crt \
+    -out $APISERVER_SETUP_DIR/service-account.crt \
     -days 1000
 
-  cat >$DATA_DIR/openssl-kubelet.cnf <<EOF
+  cat >$APISERVER_SETUP_DIR/openssl-kubelet.cnf <<EOF
 [req]
 req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
 [v3_req]
 basicConstraints = critical, CA:FALSE
 keyUsage = critical, nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = clientAuth
 EOF
 
-  openssl genrsa -out $DATA_DIR/apiserver-kubelet-client.key 2048
-  openssl req -new -key $DATA_DIR/apiserver-kubelet-client.key \
+  openssl genrsa -out $APISERVER_SETUP_DIR/apiserver-kubelet-client.key 2048
+  openssl req -new -key $APISERVER_SETUP_DIR/apiserver-kubelet-client.key \
     -subj "/CN=kube-apiserver-kubelet-client/O=system:masters" \
-    -out $DATA_DIR/apiserver-kubelet-client.csr \
-    -config $DATA_DIR/openssl-kubelet.cnf
-  openssl x509 -req -in $DATA_DIR/apiserver-kubelet-client.csr \
+    -out $APISERVER_SETUP_DIR/apiserver-kubelet-client.csr \
+    -config $APISERVER_SETUP_DIR/openssl-kubelet.cnf
+  openssl x509 -req -in $APISERVER_SETUP_DIR/apiserver-kubelet-client.csr \
     -CA $DATA_DIR/$CA_FILE_NAME.crt \
     -CAkey $DATA_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/apiserver-kubelet-client.crt \
+    -out $APISERVER_SETUP_DIR/apiserver-kubelet-client.crt \
     -extensions v3_req \
-    -extfile $DATA_DIR/openssl-kubelet.cnf \
+    -extfile $APISERVER_SETUP_DIR/openssl-kubelet.cnf \
     -days 1000
 
   ENCRYPTION_KEY=$(head -c 32 /dev/urandom | base64)
-  cat <<EOF | tee $DATA_DIR/encryption-config.yaml
+  cat <<EOF | tee $APISERVER_SETUP_DIR/encryption-config.yaml
 kind: EncryptionConfig
 apiVersion: v1
 resources:
@@ -108,7 +113,7 @@ resources:
       - identity: {}
 EOF
 
-  cat <<EOF | tee $DATA_DIR/kube-apiserver.service
+  cat <<EOF | tee $APISERVER_SETUP_DIR/kube-apiserver.service
 [Unit]
 Description=Kubernetes API Server
 Documentation=https://github.com/kubernetes/kubernetes
@@ -154,16 +159,10 @@ EOF
 }
 
 apiserver_install() {
-  sudo cp -v $DATA_DIR/kube-apiserver $BIN_DIR/
-  sudo cp -v $DATA_DIR/kube-apiserver.key \
-    $DATA_DIR/kube-apiserver.crt \
-    $DATA_DIR/service-account.key \
-    $DATA_DIR/service-account.crt \
-    $DATA_DIR/apiserver-kubelet-client.key \
-    $DATA_DIR/apiserver-kubelet-client.crt \
-    $MASTER_CERT_DIR
-  sudo cp -v $DATA_DIR/encryption-config.yaml $MASTER_CONFIG_DIR
-  sudo cp -v $DATA_DIR/kube-apiserver.service $SERVICES_DIR
+  sudo cp -v $APISERVER_SETUP_DIR/kube-apiserver $BIN_DIR/
+  sudo cp -v $APISERVER_SETUP_DIR/*.key $APISERVER_SETUP_DIR/*.crt $MASTER_CERT_DIR
+  sudo cp -v $APISERVER_SETUP_DIR/encryption-config.yaml $MASTER_CONFIG_DIR
+  sudo cp -v $APISERVER_SETUP_DIR/kube-apiserver.service $SERVICES_DIR
 
   sudo chmod -v 500 $BIN_DIR/kube-apiserver
   sudo chmod -Rv 600 $MASTER_CERT_DIR/*apiserver* $MASTER_CERT_DIR/service-account* \
@@ -179,8 +178,7 @@ apiserver_remove() {
 
 apiserver_remove_all() {
   apiserver_remove
-  sudo rm -fr $DATA_DIR/kube-apiserver* $DATA_DIR/service-account* \
-    $DATA_DIR/apiserver* $DATA_DIR/*apiserver.cnf $DATA_DIR/*kubelet.cnf $DATA_DIR/encryption*
+  sudo rm -fr $APISERVER_SETUP_DIR/*
 }
 
 apiserver_start() {
@@ -199,10 +197,10 @@ apiserver_restart() {
 }
 
 apiserver_reinstall() {
-  if [ -f $DATA_DIR/kube-apiserver ] && [ -f $DATA_DIR/kube-apiserver.key ] && \
-    [ -f $DATA_DIR/kube-apiserver.crt ] && [ -f $DATA_DIR/service-account.key ] && \
-    [ -f $DATA_DIR/service-account.crt ] && [ -f $DATA_DIR/apiserver-kubelet-client.key ] && \
-    [ -f $DATA_DIR/apiserver-kubelet-client.crt ] && [ -f $DATA_DIR/kube-apiserver.service ] ; then
+  if [ -f $APISERVER_SETUP_DIR/kube-apiserver ] && [ -f $APISERVER_SETUP_DIR/kube-apiserver.key ] && \
+    [ -f $APISERVER_SETUP_DIR/kube-apiserver.crt ] && [ -f $APISERVER_SETUP_DIR/service-account.key ] && \
+    [ -f $APISERVER_SETUP_DIR/service-account.crt ] && [ -f $APISERVER_SETUP_DIR/apiserver-kubelet-client.key ] && \
+    [ -f $APISERVER_SETUP_DIR/apiserver-kubelet-client.crt ] && [ -f $APISERVER_SETUP_DIR/kube-apiserver.service ] ; then
     apiserver_remove
     apiserver_install
   else
@@ -213,6 +211,13 @@ apiserver_reinstall() {
 }
 
 case $1 in
+"setup-dirs")
+  apiserver_setup_dirs
+  ;;
+"download")
+  apiserver_setup_dirs
+  apiserver_download
+  ;;
 "remove")
   apiserver_stop
   apiserver_remove
