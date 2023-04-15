@@ -12,14 +12,40 @@ source common.sh
 # shellcheck disable=SC2155
 export NODE_HOSTNAME=$(ssh $NODE hostname -s)
 
-kubelet_generate() {
-  master_ca_exists
+KUBELET_FILE_NAME=kubelet
+KUBELET_SETUP_DIR_NAME=kubelet
+KUBELET_SETUP_DIR="${DATA_DIR}/$KUBELET_SETUP_DIR_NAME"
 
-  cat <<EOF | tee $DATA_DIR/openssl-worker-kubelet.cnf
+kubelet_download() {
+  KUBELET_DOWNLOAD_FILE_NAME=$KUBELET_SETUP_DIR/$KUBELET_FILE_NAME
+  if [ ! -f $KUBELET_DOWNLOAD_FILE_NAME ]; then
+    wget -P $KUBELET_SETUP_DIR -q --show-progress --https-only --timestamping \
+      "https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/$KUBELET_FILE_NAME"
+  else
+    echo "$KUBELET_DOWNLOAD_FILE_NAME already exists, skipping download"
+  fi
+}
+
+kubelet_setup_dirs() {
+  master_check_dirs_and_create
+  mkdir -p $KUBELET_SETUP_DIR
+  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubernetes.paths[]" cluster-config.json)
+  ssh -T $NODE sudo mkdir -vp $(jq -r ".nodes.worker.kubelet.paths[]" cluster-config.json)
+}
+
+kubelet_copy_ca_certs() {
+  cp $MASTER_CERT_DIR/$CA_FILE_NAME.crt $MASTER_CERT_DIR/$CA_FILE_NAME.key $KUBELET_SETUP_DIR
+}
+
+kubelet_generate() {
+  kubelet_setup_dirs
+  master_ca_exists
+  kubelet_copy_ca_certs
+  kubelet_download
+
+  cat <<EOF | tee $KUBELET_SETUP_DIR/openssl-worker-kubelet.cnf
 [req]
 req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
 [ v3_req ]
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
@@ -29,20 +55,39 @@ DNS.1 = worker
 IP.1 = ${NODE}
 EOF
 
-  openssl genrsa -out $DATA_DIR/kubelet.key 2048
-  openssl req -new -key $DATA_DIR/kubelet.key \
+  openssl genrsa -out $KUBELET_SETUP_DIR/kubelet.key 2048
+  openssl req -new -key $KUBELET_SETUP_DIR/kubelet.key \
     -subj "/CN=system:node:${NODE_HOSTNAME}/O=system:nodes" \
-    -out $DATA_DIR/kubelet.csr \
-    -config $DATA_DIR/openssl-worker-kubelet.cnf
-  openssl x509 -req -in $DATA_DIR/kubelet.csr \
-    -CA $MASTER_CERT_DIR/$CA_FILE_NAME.crt \
-    -CAkey $MASTER_CERT_DIR/$CA_FILE_NAME.key \
+    -out $KUBELET_SETUP_DIR/kubelet.csr \
+    -config $KUBELET_SETUP_DIR/openssl-worker-kubelet.cnf
+  openssl x509 -req -in $KUBELET_SETUP_DIR/kubelet.csr \
+    -CA $KUBELET_SETUP_DIR/$CA_FILE_NAME.crt \
+    -CAkey $KUBELET_SETUP_DIR/$CA_FILE_NAME.key \
     -CAcreateserial \
-    -out $DATA_DIR/kubelet.crt \
+    -out $KUBELET_SETUP_DIR/kubelet.crt \
     -extensions v3_req \
-    -extfile $DATA_DIR/openssl-worker-kubelet.cnf -days 1000
+    -extfile $KUBELET_SETUP_DIR/openssl-worker-kubelet.cnf -days 1000
 
-  cat <<EOF | tee $DATA_DIR/kubelet-config.yaml
+  sudo kubectl config set-cluster $CLUSTER_NAME \
+    --certificate-authority=$KUBELET_SETUP_DIR/$CA_FILE_NAME.crt \
+    --server=https://${MASTER_1}:6443 \
+    --embed-certs=true \
+    --kubeconfig=$KUBELET_SETUP_DIR/kubelet.kubeconfig
+
+  sudo kubectl config set-credentials system:node:$NODE_HOSTNAME \
+    --client-certificate=$KUBELET_SETUP_DIR/kubelet.crt \
+    --client-key=$KUBELET_SETUP_DIR/kubelet.key \
+    --embed-certs=true \
+    --kubeconfig=$KUBELET_SETUP_DIR/kubelet.kubeconfig
+
+  sudo kubectl config set-context default \
+    --cluster=$CLUSTER_NAME \
+    --user=system:node:$NODE_HOSTNAME \
+    --kubeconfig=$KUBELET_SETUP_DIR/kubelet.kubeconfig
+
+  sudo kubectl config use-context default --kubeconfig=$KUBELET_SETUP_DIR/kubelet.kubeconfig
+
+  cat <<EOF | tee $KUBELET_SETUP_DIR/kubelet-config.yaml
 kind: KubeletConfiguration
 apiVersion: kubelet.config.k8s.io/v1beta1
 authentication:
@@ -64,7 +109,7 @@ tlsPrivateKeyFile: $KUBELET_CERT_DIR/kubelet.key
 registerNode: true
 EOF
 
-  cat <<EOF | tee $DATA_DIR/kubelet.service
+  cat <<EOF | tee $KUBELET_SETUP_DIR/kubelet.service
 [Unit]
 Description=Kubernetes Kubelet
 Documentation=https://github.com/kubernetes/kubernetes
@@ -86,61 +131,40 @@ EOF
 }
 
 kubelet_install() {
-  cat <<EOF | ssh -T $NODE
-echo "Downloading kubelet-$KUBERNETES_VERSION"
-wget -q --https-only --timestamping \
-    https://storage.googleapis.com/kubernetes-release/release/$KUBERNETES_VERSION/bin/linux/amd64/kubelet
+  scp -r $KUBELET_SETUP_DIR $NODE:~
 
-sudo mv -v ./kubelet $BIN_DIR
+  cat <<EOF | ssh -T $NODE
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/kubelet $BIN_DIR
 
 sudo chown -v root:root $BIN_DIR/kubelet
 sudo chmod -v 500 $BIN_DIR/kubelet
 EOF
 
-  scp $DATA_DIR/kubelet.key $DATA_DIR/kubelet.crt $MASTER_CERT_DIR/$CA_FILE_NAME.crt $NODE:~
-
   cat <<EOF | ssh -T $NODE
-sudo mv -v ~/$CA_FILE_NAME.crt $WORKER_CERT_DIR/
-sudo mv -v ~/kubelet.key $KUBELET_CERT_DIR/kubelet.key
-sudo mv -v ~/kubelet.crt $KUBELET_CERT_DIR/kubelet.crt
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/$CA_FILE_NAME.crt $WORKER_CERT_DIR/
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/kubelet.key ~/$KUBELET_SETUP_DIR_NAME/kubelet.crt $KUBELET_CERT_DIR
 
 sudo chown -v root:root $KUBELET_CERT_DIR/kubelet.key
 sudo chmod -v 600 $KUBELET_CERT_DIR/kubelet.key
+
+sudo chown -v root:root $KUBELET_CERT_DIR/kubelet.crt
+sudo chmod -v 600 $KUBELET_CERT_DIR/kubelet.crt
 EOF
 
   cat <<EOF | ssh -T $NODE
-sudo kubectl config set-cluster $CLUSTER_NAME \\
-    --certificate-authority=$WORKER_CERT_DIR/$CA_FILE_NAME.crt \\
-    --server=https://${MASTER_1}:6443 \\
-    --kubeconfig=kubelet.kubeconfig
-
-sudo kubectl config set-credentials system:node:$NODE_HOSTNAME \\
-    --client-certificate=$KUBELET_CERT_DIR/kubelet.crt \\
-    --client-key=$KUBELET_CERT_DIR/kubelet.key \\
-    --kubeconfig=kubelet.kubeconfig
-
-sudo kubectl config set-context default \\
-    --cluster=$CLUSTER_NAME \\
-    --user=system:node:$NODE_HOSTNAME \\
-    --kubeconfig=kubelet.kubeconfig
-
-sudo kubectl config use-context default --kubeconfig=kubelet.kubeconfig
-
-sudo mv -v ~/kubelet.kubeconfig $KUBELET_CONFIG_DIR
-sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet.kubeconfig
-EOF
-
-  scp $DATA_DIR/kubelet-config.yaml $DATA_DIR/kubelet.service $NODE:~
-
-  cat <<EOF | ssh -T $NODE
-sudo mv -v ~/kubelet-config.yaml $KUBELET_CONFIG_DIR
-sudo mv -v ~/kubelet.service $SERVICES_DIR/kubelet.service
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/kubelet-config.yaml $KUBELET_CONFIG_DIR
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/kubelet.service $SERVICES_DIR/kubelet.service
 
 sudo chown -v root:root $KUBELET_CONFIG_DIR/kubelet-config.yaml
 sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet-config.yaml
 
 sudo chown -v root:root $SERVICES_DIR/kubelet.service
 sudo chmod -v 600 $SERVICES_DIR/kubelet.service
+EOF
+
+  cat <<EOF | ssh -T $NODE
+sudo cp -v ~/$KUBELET_SETUP_DIR_NAME/kubelet.kubeconfig $KUBELET_CONFIG_DIR
+sudo chmod -v 600 $KUBELET_CONFIG_DIR/kubelet.kubeconfig
 EOF
 }
 
@@ -158,7 +182,7 @@ EOF
 
 kubelet_remove_all() {
   kubelet_remove
-  $DATA_DIR/openssl-worker-kubelet.cnf $DATA_DIR/kubelet*
+  rm -fr $KUBELET_SETUP_DIR/*
 }
 
 kubelet_start() {
@@ -181,17 +205,31 @@ kubelet_restart() {
 }
 
 kubelet_reinstall() {
-  kubelet_remove_all
+  kubelet_remove
   kubelet_generate
   kubelet_install
 }
 
 case $1 in
+"setup-dirs")
+  kubelet_setup_dirs
+  ;;
+"download")
+  kubelet_setup_dirs
+  kubelet_download
+  ;;
 "remove")
+  kubelet_stop
+  kubelet_remove
   ;;
 "generate")
+  kubelet_generate
   ;;
 "install")
+  kubelet_stop
+  kubelet_setup_dirs
+  kubelet_install
+  kubelet_start
   ;;
 "reinstall")
   kubelet_stop
