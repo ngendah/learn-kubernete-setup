@@ -47,14 +47,14 @@
   when: ansible_swaptotal_mb > 0
 
 - name: Install docker and its dependecies
-  apt: 
+  apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
   vars:
     packages:
-    - docker-ce 
-    - docker-ce-cli 
+    - docker-ce
+    - docker-ce-cli
     - containerd.io
 
 - name: Regenerate containerd configuration
@@ -62,7 +62,7 @@
       containerd config default > config.toml;
       sed -E 's/\s+SystemdCgroup=/SystemdCgroup=true/g' config.toml;
       sudo mv -f config.toml /etc/containerd/
-  
+
 - name: Restart containerd
   ansible.builtin.service:
     name: containerd
@@ -80,7 +80,7 @@
     EOF
 
 - name: Install utilities
-  apt: 
+  apt:
     name: "{{ packages }}"
     state: present
     update_cache: yes
