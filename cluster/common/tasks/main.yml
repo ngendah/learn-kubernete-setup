@@ -79,6 +79,12 @@
     {{whoami.stdout}} ALL=(ALL) NOPASSWD:ALL
     EOF
 
+- name: Mute ssh login banner
+  become: false
+  ansible.builtin.file:
+    path: "/home/{{whoami.stdout}}/.hushlogin"
+    state: touch
+
 - name: Install utilities
   apt:
     name: "{{ packages }}"
