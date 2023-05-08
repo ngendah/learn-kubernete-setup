@@ -7,7 +7,11 @@ After steps:
 
 1. Build and install network plugins on the worker node
 
-  - [Network plugins](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
+    - [Network plugins](https://github.com/containernetworking/plugins)
+    
+        Install `golang` or use `golang` docker image, build and install to `/opt/cni/bin`.
+
+    - [Network plugins docs](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
 
 2. Deploy DNS and network add-on
 
